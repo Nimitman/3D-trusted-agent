@@ -22,7 +22,6 @@ export const CH04_BEATS = {
  * keystone are held back for Chapter 05. The first four are the four moments.
  */
 export const CH04_PIECES = ['v1', 'v6', 'v3', 'pierL', 'v4', 'v0', 'pierR', 'v7', 'v2', 'v5'] as const
-export type PieceId = (typeof CH04_PIECES)[number]
 
 /** When a piece lands, in chapter-local time. */
 export function landing(index: number) {

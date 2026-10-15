@@ -51,8 +51,6 @@ type Stone = {
   seat: number
 }
 
-export type Assembly = ReturnType<typeof createAssembly>
-
 /** Builds the stone badge and returns its root plus a per-frame update. */
 export function createAssembly(env: THREE.Texture, shadows: boolean) {
   const root = new THREE.Group()

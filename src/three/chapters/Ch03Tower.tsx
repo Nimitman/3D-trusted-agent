@@ -189,7 +189,7 @@ export function Ch03Tower({ tier }: { tier: Tier }) {
 
   return (
     <group>
-      <hemisphereLight args={['#8d97aa', '#050505', 0.3]} />
+      <hemisphereLight args={['#8d97aa', '#050505', tier === 'full' ? 0.3 : 0.42]} />
       {/* Moonlight from the front left: catches slab edges and mullions so the tower has a body. */}
       <directionalLight position={[-40, 60, 50]} intensity={1.1} color="#9aa6bb" />
 
@@ -230,7 +230,7 @@ export function Ch03Tower({ tier }: { tier: Tier }) {
         <meshStandardMaterial color="#14120f" roughness={0.95} />
       </mesh>
 
-      <Interior />
+      <Interior tier={tier} />
       <Ch03Moments tier={tier} />
 
       <Dust
@@ -249,7 +249,7 @@ export function Ch03Tower({ tier }: { tier: Tier }) {
  * (which is also what reads as the lit band from outside), and dim practicals
  * between the sets so the architecture is there without competing.
  */
-function Interior() {
+function Interior({ tier }: { tier: Tier }) {
   const columns = useMemo(() => {
     const xs = [-10.5, -3.5, 3.5, 10.5]
     return xs.flatMap((x) => [
@@ -270,8 +270,9 @@ function Interior() {
         <boxGeometry args={[WIDTH - 2, 0.04, 0.1]} />
         <meshBasicMaterial color={new THREE.Color('#ffc58a').multiplyScalar(1.25)} />
       </mesh>
-      {[-10.5, -3.5, 3.5, 10.5].map((x) => (
-        <pointLight key={x} position={[x, y + STOREY - 0.5, 0.5]} color="#ffc58a" intensity={3} distance={8} decay={2} />
+      {/* Two practicals between the sets on desktop; none on phones, where every light is costly. */}
+      {(tier === 'full' ? [-3.5, 10.5] : []).map((x) => (
+        <pointLight key={x} position={[x, y + STOREY - 0.5, 0.5]} color="#ffc58a" intensity={3.6} distance={11} decay={2} />
       ))}
     </group>
   )

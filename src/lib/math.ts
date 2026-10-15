@@ -7,8 +7,6 @@ export const lerp = (a: number, b: number, t: number) => a + (b - a) * t
 
 export const smoothstep = (t: number) => t * t * (3 - 2 * t)
 
-export const easeInOutSine = (t: number) => -(Math.cos(Math.PI * t) - 1) / 2
-
 export const easeOutCubic = (t: number) => 1 - Math.pow(1 - t, 3)
 
 /** Frame-rate independent exponential smoothing. lambda ≈ 1 / settle-time. */

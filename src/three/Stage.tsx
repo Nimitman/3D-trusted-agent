@@ -29,13 +29,24 @@ function ReadySignal() {
 function DebugShoot() {
   const advance = useThree((s) => s.advance)
   const gl = useThree((s) => s.gl)
+  const scene = useThree((s) => s.scene)
   useLayoutEffect(() => {
     if (!new URLSearchParams(location.search).has('debug')) return
     const w = window as unknown as Record<string, unknown>
     w.__shoot = (p: number) => {
       useFilm.setState({ p, v: 0 })
       w.__filmSnap = true
-      for (let i = 0; i < 4; i++) advance(performance.now() + i * 16, true)
+      for (let i = 0; i < 3; i++) advance(performance.now() + i * 16, true)
+      // Measure one whole frame (all post-processing passes included).
+      gl.info.autoReset = false
+      gl.info.reset()
+      advance(performance.now() + 64, true)
+      const cost = { calls: gl.info.render.calls, triangles: gl.info.render.triangles, programs: gl.info.programs?.length ?? 0 }
+      gl.info.autoReset = true
+      let lights = 0
+      scene.traverseVisible((o) => {
+        if ((o as { isLight?: boolean }).isLight) lights++
+      })
       w.__filmSnap = false
       ;(w.__captionsSettle as (() => void) | undefined)?.()
       let img = document.getElementById('debug-still') as HTMLImageElement | null
@@ -46,12 +57,12 @@ function DebugShoot() {
         document.body.appendChild(img)
       }
       img.src = gl.domElement.toDataURL('image/jpeg', 0.85)
-      return p
+      return { p, ...cost, lights }
     }
     return () => {
       delete w.__shoot
     }
-  }, [advance, gl])
+  }, [advance, gl, scene])
   return null
 }
 

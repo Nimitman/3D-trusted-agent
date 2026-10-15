@@ -235,7 +235,8 @@ export function Ch02Crowd({ tier }: { tier: Tier }) {
 
   const built = useMemo(() => {
     const walkers = makeCrowd(count)
-    const base = figureGeometry(full ? 'full' : 'lite')
+    // Small and distant: the lighter silhouette looks the same and costs a third.
+    const base = figureGeometry('lite')
 
     // Bodies: one draw call for the whole crowd.
     const bodyGeo = base.clone()

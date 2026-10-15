@@ -79,17 +79,19 @@ function Set({ index, children }: { index: number; children: ReactNode }) {
   return <group position={[SET_X[index], LIT_FLOOR_Y, SET_Z]}>{children}</group>
 }
 
-function Pool({ x = 0, z = 0, intensity = 26, angle = 0.62, lightRef }: {
+function Pool({ x = 0, z = 0, intensity = 26, angle = 0.62, lightRef, fill = true }: {
   x?: number
   z?: number
   intensity?: number
   angle?: number
   lightRef?: React.Ref<THREE.SpotLight>
+  /** Neighbouring pools can share one fill; every light here is paid for by every surface. */
+  fill?: boolean
 }) {
   return (
     <>
       {/* A soft warm fill from the room side, so the people read, not just the props. */}
-      <pointLight position={[x, 1.7, z + 1.9]} color={TUNGSTEN} intensity={1.6} distance={5} decay={2} />
+      {fill && <pointLight position={[x, 1.7, z + 1.9]} color={TUNGSTEN} intensity={1.6} distance={5} decay={2} />}
     <AimedSpot
       ref={lightRef}
       position={[x, 2.75, z + 0.6]}
@@ -179,8 +181,10 @@ function MomentWrongHome({ kit }: { kit: Kit }) {
 
   return (
     <Set index={1}>
-      <Pool x={-0.85} z={-0.2} intensity={26} angle={0.45} />
-      <Pool x={0.85} z={-0.2} intensity={24} angle={0.45} lightRef={rightLight} />
+      {/* One fill between the two plinths covers both pools. */}
+      <pointLight position={[0, 1.7, 1.7]} color={TUNGSTEN} intensity={1.8} distance={5} decay={2} />
+      <Pool x={-0.85} z={-0.2} intensity={26} angle={0.45} fill={false} />
+      <Pool x={0.85} z={-0.2} intensity={24} angle={0.45} lightRef={rightLight} fill={false} />
       <mesh position={[-0.85, 0.3, -0.2]} material={kit.plinth} castShadow receiveShadow>
         <boxGeometry args={[0.75, 0.6, 0.75]} />
       </mesh>
