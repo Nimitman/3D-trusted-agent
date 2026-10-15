@@ -5,9 +5,10 @@ import * as THREE from 'three'
 import { film } from '../../state/store'
 import { damp, remap } from '../../lib/math'
 
+// BASE_URL is '/' in dev and the repo path on GitHub Pages.
 export const FONT = {
-  display: '/fonts/Archivo-Expanded-ExtraBold.ttf',
-  hairline: '/fonts/Archivo-Condensed-ExtraLight.ttf',
+  display: `${import.meta.env.BASE_URL}fonts/Archivo-Expanded-ExtraBold.ttf`,
+  hairline: `${import.meta.env.BASE_URL}fonts/Archivo-Condensed-ExtraLight.ttf`,
 }
 
 type Props = {
