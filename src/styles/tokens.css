@@ -1,0 +1,20 @@
+/* Trusted Agent design tokens. Agreed in the Phase 1 storyboard. */
+:root {
+  --void: #0c0b0a;
+  --char: #151412;
+  --char-2: #1e1c19;
+  --line: #2d2a26;
+  --stone: #8d8a83;
+  --stone-2: #bab5ac;
+  --bone: #ece7de;
+  --purple: #5e23dc; /* placeholder for the Housing.com purple */
+  --purple-lit: #a58bff; /* the same purple as light on black */
+  --tungsten: #ffc58a; /* light only, Chapter 03 */
+
+  --f-display: 'Archivo', 'Helvetica Neue', Arial, sans-serif;
+  --f-body: 'Hanken Grotesk', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --f-mono: 'Geist Mono', ui-monospace, Menlo, Consolas, monospace;
+
+  --ease-dolly: cubic-bezier(0.2, 0.8, 0.2, 1);
+  color-scheme: dark;
+}

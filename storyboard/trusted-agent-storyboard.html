@@ -1,0 +1,1021 @@
+<title>Trusted Agent Storyboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,100..900&family=Big+Shoulders+Display:wght@400..900&family=Geist+Mono:wght@400..600&family=Hanken+Grotesk:ital,wght@0,300..700;1,300..500&display=swap">
+<style>
+/* Layout: a film reel. Full-bleed 16:9 frames run down the page, each with a narrow production-notes rail beside it. Single dark look by choice: the film itself lives in the dark. */
+:root{
+  --void:#0c0b0a;
+  --char:#151412;
+  --char-2:#1e1c19;
+  --line:#2d2a26;
+  --stone:#8d8a83;
+  --stone-2:#bab5ac;
+  --bone:#ece7de;
+  --purple:#5e23dc;      /* placeholder for the Housing.com purple */
+  --purple-lit:#a58bff;  /* the same purple as light on black */
+  --tungsten:#ffc58a;
+  --f-display:"Archivo","Helvetica Neue",Arial,sans-serif;
+  --f-alt:"Big Shoulders Display",Impact,"Arial Narrow",sans-serif;
+  --f-body:"Hanken Grotesk",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-mono:"Geist Mono",ui-monospace,Menlo,Consolas,monospace;
+  --grain:none;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{background:var(--void);color:var(--bone);font:400 16px/1.6 var(--f-body);padding-inline:clamp(16px,4vw,56px);padding-block:0 96px;-webkit-font-smoothing:antialiased}
+main{max-width:1360px;margin:0 auto}
+a{color:var(--bone)}
+:focus-visible{outline:2px solid var(--purple-lit);outline-offset:3px}
+
+.mono{font-family:var(--f-mono);font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--stone)}
+.disp{font-family:var(--f-display);font-weight:800;font-stretch:112%;text-transform:uppercase;line-height:.86;letter-spacing:-.015em;text-wrap:balance}
+
+/* masthead */
+.mast{padding-block:56px 40px;display:grid;gap:28px;border-bottom:1px solid var(--line)}
+.mast h1{margin:0;font-size:clamp(56px,13vw,196px)}
+.mast h1 span{display:block}
+.mast h1 .dim{color:var(--stone);font-stretch:75%;font-weight:300}
+.mast .lede{max-width:62ch;font-size:clamp(17px,1.6vw,20px);color:var(--stone-2);margin:0}
+.toc{display:flex;flex-wrap:wrap;gap:8px 22px;margin:0;padding:0;list-style:none}
+.toc a{text-decoration:none;font-family:var(--f-mono);font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--stone-2);border-bottom:1px solid var(--line);padding-bottom:2px}
+.toc a:hover{color:var(--bone);border-color:var(--bone)}
+
+/* sections */
+section{padding-block:88px 0}
+.sh{display:grid;gap:12px;margin-bottom:36px;max-width:900px}
+.sh h2{margin:0;font-size:clamp(36px,6vw,80px)}
+.sh p{margin:0;color:var(--stone-2);max-width:64ch}
+
+/* direction */
+.principles{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:1px;background:var(--line);border:1px solid var(--line)}
+.principles div{background:var(--void);padding:24px;display:grid;gap:8px;align-content:start}
+.principles h3{margin:0;font:600 19px/1.25 var(--f-body)}
+.principles p{margin:0;color:var(--stone-2);font-size:15px}
+.thesis{font-family:var(--f-display);font-stretch:90%;font-weight:500;font-size:clamp(24px,3vw,38px);line-height:1.15;max-width:28ch;margin:0 0 40px;text-wrap:balance}
+.thesis em{font-style:normal;color:var(--purple-lit)}
+.avoid{margin-top:28px;display:flex;flex-wrap:wrap;gap:8px}
+.avoid span{font-family:var(--f-mono);font-size:12px;color:var(--stone);border:1px solid var(--line);padding:4px 10px;text-decoration:line-through;text-decoration-color:var(--stone)}
+
+/* scroll map */
+.map-wrap{overflow-x:auto;border:1px solid var(--line);background:var(--char);padding:20px}
+.map{display:grid;grid-template-columns:176px minmax(0,1fr);row-gap:6px;column-gap:16px;min-width:780px}
+.map .lab{font-size:13px;line-height:1.25;align-self:center;color:var(--stone-2)}
+.map .lab b{font-family:var(--f-mono);font-weight:500;color:var(--stone);margin-right:8px}
+.track{position:relative;height:34px;background:repeating-linear-gradient(to right,var(--line) 0 1px,transparent 1px 10%)}
+.bar{position:absolute;top:5px;bottom:5px;background:var(--char-2);border:1px solid #3a3732;display:flex;align-items:center;padding-inline:8px;overflow:hidden;white-space:nowrap;font-family:var(--f-mono);font-size:11px;color:var(--stone-2)}
+.dot{position:absolute;top:50%;width:10px;height:10px;margin:-5px 0 0 -5px;border-radius:50%;background:var(--purple-lit);box-shadow:0 0 12px var(--purple)}
+.ticks{position:relative;height:18px}
+.ticks span{position:absolute;transform:translateX(-50%);font-family:var(--f-mono);font-size:11px;color:var(--stone)}
+.ticks span:first-child{transform:none}
+.ticks span:last-child{transform:translateX(-100%)}
+.track svg{position:absolute;inset:0;width:100%;height:100%}
+.hush{position:absolute;top:0;bottom:0;background:repeating-linear-gradient(135deg,transparent 0 4px,rgba(236,231,222,.08) 4px 5px);border-inline:1px dashed var(--stone)}
+.map-notes{display:flex;flex-wrap:wrap;gap:8px 28px;margin-top:16px;font-size:14px;color:var(--stone-2)}
+
+/* frames */
+.frame{position:relative;aspect-ratio:16/9;max-width:100%;background:#050505;overflow:hidden;container-type:inline-size;margin:0;isolation:isolate}
+.frame canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
+.frame::after{content:"";position:absolute;inset:0;background-image:var(--grain);opacity:.09;mix-blend-mode:screen;pointer-events:none;z-index:3}
+.frame::before{content:"";position:absolute;inset:0;background:radial-gradient(120% 90% at 50% 50%,transparent 55%,rgba(0,0,0,.55));z-index:1;pointer-events:none}
+.frame.nogl{background:radial-gradient(60% 50% at 50% 45%,#1d1b18,#050505)}
+.ov{position:absolute;inset:0;z-index:2;pointer-events:none}
+.ov .disp{position:absolute;color:var(--bone)}
+.tc{position:absolute;z-index:4;left:2cqw;top:1.8cqw;font-family:var(--f-mono);font-size:max(10px,1.05cqw);letter-spacing:.08em;color:rgba(236,231,222,.55);text-transform:uppercase}
+.tag{position:absolute;z-index:4;right:2cqw;top:1.8cqw;font-family:var(--f-mono);font-size:max(10px,1cqw);letter-spacing:.06em;text-transform:uppercase;color:var(--void);background:var(--stone-2);padding:.2em .6em}
+
+/* chapter layout */
+.chapter{display:grid;grid-template-columns:minmax(0,2.15fr) minmax(0,1fr);gap:28px 36px;padding-block:44px;border-top:1px solid var(--line)}
+.chapter:first-of-type{border-top:0}
+.chapter .media{display:grid;gap:12px;min-width:0}
+.chapter header{grid-column:1/-1;display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 18px}
+.chapter header .num{font-family:var(--f-display);font-weight:200;font-stretch:62%;font-size:clamp(40px,5vw,64px);line-height:1;color:var(--stone)}
+.chapter header h3{margin:0;font-family:var(--f-display);font-weight:700;font-stretch:100%;font-size:clamp(22px,2.4vw,30px);text-transform:uppercase;letter-spacing:.01em}
+.chapter header .range{font-family:var(--f-mono);font-size:12px;color:var(--stone);letter-spacing:.06em}
+dl.notes{margin:0;display:grid;gap:14px;align-content:start;min-width:0}
+dl.notes div{display:grid;gap:2px;padding-bottom:12px;border-bottom:1px solid var(--line)}
+dl.notes div:last-child{border-bottom:0}
+dl.notes dt{font-family:var(--f-mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--stone)}
+dl.notes dd{margin:0;font-size:15px;line-height:1.5;color:var(--bone)}
+dl.notes dd.p{color:var(--purple-lit)}
+.strip{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.strip .frame .line{position:absolute;left:4cqw;bottom:5cqw;right:4cqw;font:italic 400 4.6cqw/1.2 var(--f-body);color:var(--bone);text-wrap:balance}
+.strip .frame .line small{display:block;font:normal 500 2.6cqw/1.3 var(--f-mono);letter-spacing:.06em;text-transform:uppercase;color:var(--stone-2);margin-top:1.4cqw}
+.strip .frame .tc{font-size:max(9px,2cqw)}
+.beats{display:flex;flex-wrap:wrap;gap:6px 20px;font-size:15px;color:var(--stone-2)}
+.beats span:last-child{color:var(--bone)}
+
+/* lockup frame */
+.lock{position:absolute;inset:0;z-index:2;display:grid;place-content:center;justify-items:center;text-align:center;gap:1.4cqw;padding:4cqw;background:var(--void)}
+.lock svg{width:9cqw;height:auto}
+.lock .t{font-family:var(--f-display);font-weight:800;font-stretch:118%;font-size:7.4cqw;line-height:.9;text-transform:uppercase;letter-spacing:-.01em}
+.lock .r{font-family:var(--f-mono);font-size:1.6cqw;letter-spacing:.12em;text-transform:uppercase;color:var(--stone-2)}
+.lock .b{font-size:2cqw;color:var(--stone-2);margin-top:1.5cqw;line-height:1.4}
+.lock .ctas{display:flex;gap:1.5cqw;margin-top:2cqw}
+.lock .ctas span{font-family:var(--f-mono);font-size:1.45cqw;letter-spacing:.1em;padding:1.1cqw 2cqw;border:1px solid var(--stone)}
+.lock .ctas span:first-child{background:var(--purple);border-color:var(--purple);color:#fff}
+
+/* badges */
+.badges{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:20px}
+.badge{border:1px solid var(--line);background:var(--char);display:grid;grid-template-rows:auto auto 1fr auto;min-width:0}
+.badge.rec{border-color:#4a3f6e}
+.badge .stage{background:var(--void);aspect-ratio:300/265;display:grid;place-items:center;border-bottom:1px solid var(--line);padding:18px}
+.badge .stage svg{width:100%;height:100%;overflow:visible}
+.badge .meta{padding:20px 20px 0;display:grid;gap:6px}
+.badge h3{margin:0;display:flex;align-items:baseline;justify-content:space-between;gap:12px;font-family:var(--f-display);font-weight:700;font-stretch:105%;font-size:24px;text-transform:uppercase}
+.badge h3 .mono{font-size:11px}
+.badge .meta p{margin:0;color:var(--stone-2);font-size:15px}
+.badge ol{list-style:none;margin:16px 20px 0;padding:0;display:grid;gap:4px;align-content:start}
+.badge li{display:grid;grid-template-columns:22px 1fr auto;gap:8px;font-size:14px;color:var(--stone);align-items:baseline}
+.badge li .k{font-family:var(--f-mono);font-size:11px}
+.badge li .s{font-family:var(--f-mono);font-size:11px;letter-spacing:.06em}
+.badge li.on{color:var(--bone)}
+.badge li.on .s{color:var(--stone-2)}
+.badge li.on.trust .s{color:var(--purple-lit)}
+.ctrl{display:flex;align-items:center;gap:12px;padding:18px 20px 20px}
+.ctrl input[type=range]{flex:1;accent-color:var(--purple-lit);min-width:0}
+button{font:500 12px/1 var(--f-mono);letter-spacing:.08em;text-transform:uppercase;color:var(--bone);background:transparent;border:1px solid var(--stone);padding:10px 14px;cursor:pointer}
+button:hover{border-color:var(--bone);background:var(--char-2)}
+.part{transition:transform .75s cubic-bezier(.2,.8,.2,1),opacity .5s ease;transform-box:fill-box;transform-origin:center}
+.part path{fill:var(--bone);stroke:var(--void);stroke-width:1.4;stroke-linejoin:round;transition:fill .4s}
+.part.t2 path{fill:var(--stone-2)}
+.part.t3 path{fill:#6e6a63}
+.part.off{opacity:.2;transform:translate(calc(var(--dx,0)*1px),calc(var(--dy,0)*1px)) scale(var(--s,1))}
+.part.off path{fill:transparent;stroke:var(--stone);stroke-dasharray:3 3}
+.part.trust.on path{fill:var(--purple-lit)}
+.part.flash path{animation:flash 1s ease-out}
+.part.dim{opacity:.18}
+@keyframes flash{0%{fill:#fff;filter:drop-shadow(0 0 6px var(--purple-lit))}30%{fill:var(--purple-lit)}}
+
+/* type */
+.types{display:grid;gap:20px}
+.type{border:1px solid var(--line);background:var(--char);display:grid;grid-template-columns:minmax(0,1.6fr) minmax(0,1fr)}
+.type .spec{padding:32px;display:grid;gap:18px;align-content:start;border-right:1px solid var(--line);min-width:0;overflow:hidden}
+.type .about{padding:32px;display:grid;gap:14px;align-content:start}
+.type .about h3{margin:0;display:flex;justify-content:space-between;gap:12px;align-items:baseline;font:600 20px/1.2 var(--f-body)}
+.type .about p{margin:0;color:var(--stone-2);font-size:15px}
+.type .about ul{margin:0;padding-left:18px;color:var(--stone-2);font-size:15px;display:grid;gap:4px}
+.sA{font-family:var(--f-display);font-weight:800;font-stretch:115%;text-transform:uppercase;line-height:.84;letter-spacing:-.02em;font-size:clamp(46px,8.4vw,128px)}
+.sA .thin{font-weight:200;font-stretch:62%;color:var(--stone)}
+.kinetic{display:inline-block;animation:wd 3.6s ease-in-out infinite alternate}
+@keyframes wd{from{font-stretch:62%;letter-spacing:-.03em}to{font-stretch:125%;letter-spacing:.05em}}
+.sB{font-family:var(--f-alt);font-weight:850;text-transform:uppercase;line-height:.84;font-size:clamp(58px,11vw,170px);letter-spacing:-.005em}
+.sB .thin{font-weight:400;color:var(--stone)}
+.body-sample{font:400 17px/1.55 var(--f-body);color:var(--stone-2);max-width:46ch;margin:0}
+.body-sample i{color:var(--bone)}
+
+/* colour */
+.swatches{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}
+.sw{border:1px solid var(--line);display:grid;grid-template-rows:96px auto}
+.sw i{display:block}
+.sw div{padding:12px;display:grid;gap:2px;font-size:13px;color:var(--stone-2);background:var(--char)}
+.sw b{font-weight:600;color:var(--bone);font-size:14px}
+.sw code{font-family:var(--f-mono);font-size:12px;color:var(--stone)}
+.cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:36px;margin-top:40px}
+.cols h3{margin:0 0 12px;font:600 19px/1.25 var(--f-body)}
+.plist{margin:0;padding:0;list-style:none;display:grid;gap:0}
+.plist li{display:grid;grid-template-columns:64px 1fr;gap:12px;padding:10px 0;border-bottom:1px solid var(--line);font-size:15px;color:var(--stone-2)}
+.plist li b{font-family:var(--f-mono);font-weight:500;font-size:12px;color:var(--purple-lit);padding-top:3px}
+.plist.n li b{color:var(--stone)}
+
+/* tables */
+.tbl-wrap{overflow-x:auto;border:1px solid var(--line)}
+table{border-collapse:collapse;width:100%;min-width:760px;font-size:14px}
+th,td{text-align:left;vertical-align:top;padding:12px 14px;border-bottom:1px solid var(--line)}
+th{font-family:var(--f-mono);font-weight:500;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--stone);background:var(--char)}
+td{color:var(--stone-2)}
+td:first-child{color:var(--bone);white-space:nowrap;font-weight:600}
+tr:last-child td{border-bottom:0}
+.rules{margin:0 0 32px;padding:0;list-style:none;display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:1px;background:var(--line);border:1px solid var(--line)}
+.rules li{background:var(--void);padding:18px 20px;font-size:15px;color:var(--stone-2)}
+.rules li b{display:block;color:var(--bone);font-weight:600;margin-bottom:4px}
+
+/* epilogue */
+.proof{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.3fr);gap:36px;align-items:center}
+.proof .stage{background:var(--char);border:1px solid var(--line);padding:28px;aspect-ratio:300/265}
+.proof .stage svg{width:100%;height:100%;overflow:visible}
+.dims{margin:0;padding:0;list-style:none;display:grid;gap:0}
+.dims li{border-bottom:1px solid var(--line)}
+.dims button{all:unset;cursor:pointer;display:grid;grid-template-columns:120px 1fr;gap:16px;padding:14px 4px;width:100%;box-sizing:border-box}
+.dims button:focus-visible{outline:2px solid var(--purple-lit);outline-offset:-2px}
+.dims .k{font-family:var(--f-mono);font-size:11px;letter-spacing:.08em;color:var(--stone);padding-top:4px}
+.dims .v b{display:block;font-weight:600;color:var(--bone)}
+.dims .v span{color:var(--stone-2);font-size:15px}
+.dims li.act .k{color:var(--purple-lit)}
+.flag{margin-top:16px;font-size:14px;color:var(--stone-2);border-left:2px solid var(--purple-lit);padding-left:12px}
+
+/* picks */
+.picks{border:1px solid #4a3f6e;background:var(--char);padding:28px;display:grid;gap:24px}
+.picks fieldset{border:0;margin:0;padding:0;display:grid;gap:10px}
+.picks legend{font:600 18px/1.3 var(--f-body);margin-bottom:8px;padding:0}
+.opts{display:flex;flex-wrap:wrap;gap:10px}
+.opts label{display:flex;gap:10px;align-items:center;border:1px solid var(--line);padding:10px 14px;cursor:pointer;font-size:15px}
+.opts label:has(input:checked){border-color:var(--purple-lit);background:var(--char-2)}
+.opts input{accent-color:var(--purple-lit)}
+textarea{width:100%;min-height:110px;background:var(--void);color:var(--bone);border:1px solid var(--line);padding:12px;font:15px/1.5 var(--f-body);resize:vertical}
+.picks .row{display:flex;flex-wrap:wrap;gap:14px;align-items:center}
+.picks .row button{background:var(--bone);color:var(--void);border-color:var(--bone)}
+.picks .row button:hover{background:#fff}
+#copy-status{font-size:14px;color:var(--stone-2)}
+#copy-out{display:none}
+#copy-out.show{display:block}
+.next{margin-top:56px;display:grid;gap:10px;max-width:70ch;color:var(--stone-2)}
+.next h3{margin:0;color:var(--bone);font:600 19px/1.3 var(--f-body)}
+
+@media (max-width:900px){
+  .chapter{grid-template-columns:1fr}
+  .type{grid-template-columns:1fr}
+  .type .spec{border-right:0;border-bottom:1px solid var(--line)}
+  .proof{grid-template-columns:1fr}
+}
+@media (max-width:560px){
+  .strip{grid-template-columns:1fr}
+  .dims button{grid-template-columns:1fr;gap:4px}
+  .type .spec,.type .about{padding:22px}
+}
+@media (prefers-reduced-motion:reduce){
+  html{scroll-behavior:auto}
+  .part,.part path{transition:none}
+  .part.flash path,.kinetic{animation:none}
+}
+</style>
+
+<main>
+  <header class="mast">
+    <div class="mono">Housing.com · Trusted Agent campaign · Phase 1 storyboard · Draft 1 · 14 Oct 2026</div>
+    <h1 class="disp"><span>Trust</span><span class="dim">is</span><span>earned.</span></h1>
+    <p class="lede">The site is a short film in seven chapters, and scrolling controls it. This page plans that film: the story, a frame for each chapter, the badge, the type, the light and the sound. At the end you pick a badge and a typeface. Then we build Chapter 01.</p>
+    <ul class="toc">
+      <li><a href="#direction">Direction</a></li>
+      <li><a href="#map">Scroll map</a></li>
+      <li><a href="#chapters">Chapters</a></li>
+      <li><a href="#badge">Badge</a></li>
+      <li><a href="#type">Type</a></li>
+      <li><a href="#colour">Colour &amp; light</a></li>
+      <li><a href="#motion">Motion &amp; sound</a></li>
+      <li><a href="#epilogue">After the film</a></li>
+      <li><a href="#picks">Your picks</a></li>
+    </ul>
+  </header>
+
+  <!-- DIRECTION -->
+  <section id="direction">
+    <div class="sh"><span class="mono">Direction</span><h2 class="disp">One idea, never explained</h2></div>
+    <p class="thesis">The viewer watches the badge get built, piece by piece, before anyone names it. By the time it reads <em>Trusted Agent</em>, they've seen why.</p>
+    <div class="principles">
+      <div><h3>One camera, one take</h3><p>No pages and no snapping. Every scene hands off to the next inside the same world, and the camera never cuts unless it passes through black.</p></div>
+      <div><h3>Every object carries meaning</h3><p>The doorway in Chapter 01 is the badge's arch with its keystone missing. Nobody notices until Chapter 05, and that's the point.</p></div>
+      <div><h3>Purple is earned too</h3><p>Purple appears only when something becomes meaningful, seven times in the whole film. Everything else is stone, bone and shadow.</p></div>
+      <div><h3>Type is a physical object</h3><p>Headlines sit at real depths in the scene. The camera moves past them, and sometimes through them.</p></div>
+    </div>
+    <div class="avoid" aria-label="Things the film avoids">
+      <span>stock photos</span><span>handshake brokers</span><span>floating UI cards</span><span>glassmorphism</span><span>gradient skies</span><span>purple everywhere</span><span>cartoon people</span><span>scores we can't back</span><span>"India's top brokers"</span>
+    </div>
+  </section>
+
+  <!-- SCROLL MAP -->
+  <section id="map">
+    <div class="sh"><span class="mono">Scroll map</span><h2 class="disp">0 to 100 percent</h2><p>Scroll position is the film's timeline. Chapters overlap, so one scene is still leaving while the next arrives. Desktop runs about 16 screen-heights of scroll and mobile about 10.</p></div>
+    <div class="map-wrap"><div class="map" id="mapgrid"></div></div>
+    <div class="map-notes">
+      <span><span class="dot" style="position:relative;display:inline-block;margin:0 8px 0 0;top:-1px"></span>Purple moments</span>
+      <span>Line: sound level (off by default)</span>
+      <span>Hatched: full silence before the final statement</span>
+    </div>
+  </section>
+
+  <!-- CHAPTERS -->
+  <section id="chapters">
+    <div class="sh"><span class="mono">Chapters</span><h2 class="disp">Seven frames</h2><p>Each frame is a real-time 3D still from the scene's key moment, rendered in your browser. The look is close to final, but the geometry is still a sketch. Frames use the recommended Keystone badge.</p></div>
+
+    <article class="chapter" id="ch01">
+      <header><span class="num">01</span><h3>Everyone is an agent</h3><span class="range">Scroll 0–14%</span></header>
+      <div class="media">
+        <figure class="frame" id="f01"><canvas width="1600" height="900"></canvas>
+          <div class="ov">
+            <div class="disp" style="left:9cqw;top:14cqw;font-size:3.4cqw;opacity:.32;filter:blur(.12cqw)">Everyone</div>
+            <div class="disp" style="left:15cqw;top:22cqw;font-size:5.6cqw;opacity:.6">can be</div>
+            <div class="disp" style="left:4cqw;bottom:4cqw;font-size:13.5cqw">an agent.</div>
+          </div>
+          <span class="tc">01 · 9%</span></figure>
+      </div>
+      <dl class="notes">
+        <div><dt>Camera</dt><dd>Starts in total black. A slow dolly, about 26 m, toward one point of light that turns out to be a stone doorway.</dd></div>
+        <div><dt>Type</dt><dd>Each word sits at a different depth. "AGENT" grows until the camera passes through it at 12%. One beat of full black follows.</dd></div>
+        <div><dt>Light</dt><dd>One warm source behind the doorway. Thick fog. Nothing else is lit.</dd></div>
+        <div><dt>Hidden detail</dt><dd>The doorway is the badge's arch without its keystone.</dd></div>
+        <div><dt>Sound</dt><dd>A sub-bass drone rises out of silence.</dd></div>
+        <div><dt>Purple</dt><dd>None.</dd></div>
+      </dl>
+    </article>
+
+    <article class="chapter" id="ch02">
+      <header><span class="num">02</span><h3>But trust is different</h3><span class="range">Scroll 11–28%</span></header>
+      <div class="media">
+        <figure class="frame" id="f02"><canvas width="1600" height="900"></canvas>
+          <div class="ov">
+            <div class="disp" style="left:4cqw;top:5cqw;font-size:9cqw">But trust<br>is different.</div>
+          </div>
+          <span class="tc" style="top:auto;bottom:2cqw">02 · 20%</span></figure>
+        <div class="beats" aria-label="Beats after the headline"><span>You don't claim it.</span><span>You don't buy it.</span><span>You earn it.</span></div>
+      </div>
+      <dl class="notes">
+        <div><dt>Camera</dt><dd>Comes out of the black at eye level, walking pace, through about 400 identical figures.</dd></div>
+        <div><dt>Story</dt><dd>Most figures fade, turn to wireframe or break into shards. Their threads to the floating property blocks snap. Six stay solid and connected.</dd></div>
+        <div><dt>Type</dt><dd>Three beats follow the headline, each held for about 2% of scroll. "You earn it." fades in at half speed and holds for 4%.</dd></div>
+        <div><dt>Sound</dt><dd>Crowd room tone, which drops to near silence for "You earn it."</dd></div>
+        <div><dt>Purple</dt><dd class="p">A faint rim on the six solid figures. The first hint.</dd></div>
+      </dl>
+    </article>
+
+    <article class="chapter" id="ch03">
+      <header><span class="num">03</span><h3>The moments that matter</h3><span class="range">Scroll 26–47%</span></header>
+      <div class="media">
+        <figure class="frame" id="f03"><canvas width="1600" height="900"></canvas><span class="tc">03 · 28%</span></figure>
+        <div class="strip">
+          <figure class="frame" id="m1"><canvas width="960" height="540"></canvas><div class="ov"><p class="line">"There's something you should know."<small>The agent shows the flaw before the buyer finds it</small></p></div><span class="tc">Moment 1 · 31%</span></figure>
+          <figure class="frame" id="m2"><canvas width="960" height="540"></canvas><div class="ov"><p class="line">"This one isn't right for you."<small>The second home fades</small></p></div><span class="tc">Moment 2 · 35%</span></figure>
+          <figure class="frame" id="m3"><canvas width="960" height="540"></canvas><div class="ov"><p class="line">"You could ask more. But you may wait longer."<small>The higher price casts the longer shadow</small></p></div><span class="tc">Moment 3 · 39%</span></figure>
+          <figure class="frame" id="m4"><canvas width="960" height="540"></canvas><div class="ov"><p class="line">"I'm listening."<small>One lamp, one call</small></p></div><span class="tc">Moment 4 · 11:47 PM · 43%</span></figure>
+        </div>
+      </div>
+      <dl class="notes">
+        <div><dt>Camera</dt><dd>Rises to a tower at night and pushes through the one lit floor. Inside, it drifts past four small sets, about 4% of scroll each.</dd></div>
+        <div><dt>Type</dt><dd>One quiet line per moment in the body face, set small. These are people talking, not headlines.</dd></div>
+        <div><dt>Light</dt><dd>Warm tungsten practicals and pools of light, with darkness between the sets.</dd></div>
+        <div><dt>Objects</dt><dd>Architectural models only: a listing tablet, two homes, two towers, a lamp. The figures stay faceless.</dd></div>
+        <div><dt>Sound</dt><dd>Distant room ambience. A phone vibrates in moment 4.</dd></div>
+        <div><dt>Purple</dt><dd>None. These are human moments, not brand moments.</dd></div>
+      </dl>
+    </article>
+
+    <article class="chapter" id="ch04">
+      <header><span class="num">04</span><h3>Trust is built in small moments</h3><span class="range">Scroll 44–60%</span></header>
+      <div class="media">
+        <figure class="frame" id="f04"><canvas width="1600" height="900"></canvas>
+          <div class="ov">
+            <div class="disp" style="left:4cqw;top:5cqw;font-size:7cqw"><span style="opacity:1">Trust</span><br><span style="opacity:.8">is built</span><br><span style="opacity:.5">in small</span><br><span style="opacity:.25">moments.</span></div>
+          </div>
+          <span class="tc">04 · 52%</span></figure>
+      </div>
+      <dl class="notes">
+        <div><dt>Camera</dt><dd>A slow orbit around a glass structure. Each moment from Chapter 03 arrives as a warm light and becomes one piece of it.</dd></div>
+        <div><dt>Type</dt><dd>One line appears each time a piece is added. Four moments, four lines.</dd></div>
+        <div><dt>Light</dt><dd>Glass refracting a tall light panel and dark architectural slabs.</dd></div>
+        <div><dt>Restraint</dt><dd>The pieces are deliberately misaligned and seen up close. Nobody should read it as an arch yet.</dd></div>
+        <div><dt>Sound</dt><dd>A soft glass resonance each time a piece is added.</dd></div>
+        <div><dt>Purple</dt><dd>None.</dd></div>
+      </dl>
+    </article>
+
+    <article class="chapter" id="ch05">
+      <header><span class="num">05</span><h3>The badge</h3><span class="range">Scroll 57–76%</span></header>
+      <div class="media">
+        <figure class="frame" id="f05"><canvas width="1600" height="900"></canvas>
+          <div class="ov">
+            <div style="position:absolute;left:4cqw;bottom:4cqw;display:grid;gap:.5cqw;font-family:var(--f-mono);font-size:1.5cqw;letter-spacing:.1em;color:var(--bone)">
+              <span>Verified <span style="color:var(--stone)">· locked</span></span>
+              <span>Responsive <span style="color:var(--stone)">· locked</span></span>
+              <span>Quality <span style="color:var(--stone)">· locked</span></span>
+              <span>Consistent <span style="color:var(--stone)">· locked</span></span>
+              <span style="color:var(--purple-lit)">Trusted · seating</span>
+            </div>
+          </div>
+          <span class="tc">05 · 72%</span></figure>
+      </div>
+      <dl class="notes">
+        <div><dt>Camera</dt><dd>Pulls back and orbits to a three-quarter view. The glass turns to stone and finally reads as an arch.</dd></div>
+        <div><dt>Locks</dt><dd>Plinth (Verified), left pier (Responsive), right pier (Quality), the ring of stones (Consistent), then the keystone (Trusted). An arch can't stand until its keystone is in.</dd></div>
+        <div><dt>Type</dt><dd>Each label locks with its piece. Then "TRUSTED AGENT".</dd></div>
+        <div><dt>Sound</dt><dd>A weighted click for each lock. The fifth resolves the drone into a chord.</dd></div>
+        <div><dt>Purple</dt><dd class="p">A flash under each piece as it seats, then a steady glow from the keystone.</dd></div>
+      </dl>
+    </article>
+
+    <article class="chapter" id="ch06">
+      <header><span class="num">06</span><h3>The reveal</h3><span class="range">Scroll 73–89%</span></header>
+      <div class="media">
+        <figure class="frame" id="f06"><canvas width="1600" height="900"></canvas>
+          <div class="ov" style="font-family:var(--f-body);font-style:italic;color:var(--bone)">
+            <span style="position:absolute;left:6cqw;top:12cqw;font-size:1.9cqw;opacity:.55">"He told me when I was making a mistake."</span>
+            <span style="position:absolute;right:7cqw;top:9cqw;font-size:1.5cqw;opacity:.3;filter:blur(.08cqw)">"She didn't rush us."</span>
+            <span style="position:absolute;right:5cqw;top:27cqw;font-size:2.1cqw;opacity:.6">"He showed us the problem first."</span>
+            <span style="position:absolute;left:9cqw;top:30cqw;font-size:1.4cqw;opacity:.25;filter:blur(.1cqw)">"She found us a better option."</span>
+            <div class="disp" style="left:0;right:0;bottom:4.5cqw;text-align:center;font-style:normal;font-size:5.6cqw">Some agents<br>close deals.</div>
+          </div>
+          <span class="tc">06 · 84%</span><span class="tag">Sample copy</span></figure>
+      </div>
+      <dl class="notes">
+        <div><dt>Camera</dt><dd>Everything else falls into darkness. A slow pull-back while the badge holds the centre.</dd></div>
+        <div><dt>Type</dt><dd>Short stories appear and fade around the badge. Then "SOME AGENTS CLOSE DEALS." and, after a pause, "TRUSTED AGENTS BUILD CONFIDENCE."</dd></div>
+        <div><dt>Light</dt><dd>One overhead light and drifting dust.</dd></div>
+        <div><dt>Sound</dt><dd>Thins out. Full silence from 89%.</dd></div>
+        <div><dt>Purple</dt><dd class="p">Keystone glow only.</dd></div>
+        <div><dt>Before launch</dt><dd>These lines are placeholders. Real ones must come from customers who agreed to be quoted.</dd></div>
+      </dl>
+    </article>
+
+    <article class="chapter" id="ch07">
+      <header><span class="num">07</span><h3>The final statement</h3><span class="range">Scroll 87–100%</span></header>
+      <div class="media">
+        <div class="strip">
+          <figure class="frame" id="f07"><canvas width="960" height="540"></canvas>
+            <div class="ov"><div class="disp" style="left:5cqw;bottom:6cqw;font-size:8.6cqw">Trusted<br>is earned.</div></div>
+            <span class="tc">07a · 93%</span></figure>
+          <figure class="frame" id="f07b">
+            <div class="lock">
+              <svg id="lockmark" viewBox="0 0 300 265" aria-hidden="true"></svg>
+              <div class="t">Trusted Agent</div>
+              <div class="r">Recognised by Housing.com</div>
+              <div class="b">Find properties.<br>Meet agents worth trusting.</div>
+              <div class="ctas"><span>Explore Trusted Agents</span><span>See how trust is earned</span></div>
+            </div>
+            <span class="tc">07b · 100%</span></figure>
+        </div>
+      </div>
+      <dl class="notes">
+        <div><dt>Camera</dt><dd>Pushes straight into the keystone until it fills the screen, then the 3D flattens into the 2D lockup.</dd></div>
+        <div><dt>Type</dt><dd>"AN AGENT IS A PROFESSION." A pause, then "TRUSTED IS EARNED." Then the lockup.</dd></div>
+        <div><dt>Sound</dt><dd>Silence, then a single resolved tone under the final line.</dd></div>
+        <div><dt>Purple</dt><dd class="p">The keystone in the mark and the primary button.</dd></div>
+        <div><dt>Logo</dt><dd>The Housing.com wordmark goes here once we have the files. For now it's set in text.</dd></div>
+      </dl>
+    </article>
+  </section>
+
+  <!-- BADGE -->
+  <section id="badge">
+    <div class="sh"><span class="mono">Badge concepts</span><h2 class="disp">Built in five parts</h2><p>The badge has to assemble on screen in the order of the five qualities, so each concept is a structure first and a symbol second. Drag the slider or press Play to watch each one assemble.</p></div>
+    <div class="badges" id="badges"></div>
+  </section>
+
+  <!-- TYPE -->
+  <section id="type">
+    <div class="sh"><span class="mono">Type system</span><h2 class="disp">Two directions</h2><p>Both are free Google fonts, so they're cleared for the prototype. If Housing.com has a licensed brand typeface, it replaces the display face.</p></div>
+    <div class="types">
+      <div class="type">
+        <div class="spec">
+          <div class="mono">A · Archivo, variable width · with Hanken Grotesk</div>
+          <div class="sA">Trusted<br><span class="thin">is</span> earned.</div>
+          <div class="sA" style="font-size:clamp(40px,6vw,92px)"><span class="kinetic">Agent</span></div>
+          <p class="body-sample"><i>"You could ask more. But you may wait longer."</i> Hanken Grotesk carries the human lines and the interface, quiet and warm.</p>
+        </div>
+        <div class="about">
+          <h3>Structural <span class="mono">Recommended</span></h3>
+          <p>Archivo has a width axis that runs from 62% to 125%. Type can stretch and compress as the camera moves, which handles the brief's kinetic letter-spacing without faking it.</p>
+          <ul><li>One family covers the hairline "is" and the heavy headlines</li><li>The wide setting reads as architectural</li><li>Renders as real 3D text in the scene</li></ul>
+        </div>
+      </div>
+      <div class="type">
+        <div class="spec">
+          <div class="mono">B · Big Shoulders Display · with Hanken Grotesk</div>
+          <div class="sB">Trusted<br><span class="thin">is</span> earned.</div>
+          <div class="sB" style="font-size:clamp(46px,8vw,120px)">Everyone · Consistent</div>
+          <p class="body-sample"><i>"I'm listening."</i> The same body face, so only the voice of the headlines changes.</p>
+        </div>
+        <div class="about">
+          <h3>Monumental</h3>
+          <p>Tall and condensed, like signage on a building. Long words like EVERYONE and CONSISTENT can fill the full screen height without breaking.</p>
+          <ul><li>Bigger vertical drama on phones</li><li>No width axis, so kinetic effects rely on scale and tracking</li><li>Closer to an event poster than a technology brand</li></ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- COLOUR -->
+  <section id="colour">
+    <div class="sh"><span class="mono">Colour &amp; light</span><h2 class="disp">Mostly shadow</h2><p>Light and shadow carry the drama, so the palette stays narrow. The blacks and greys lean slightly warm so they read as stone, not screen.</p></div>
+    <div class="swatches">
+      <div class="sw"><i style="background:var(--void)"></i><div><b>Void</b><code>#0C0B0A</code>The film's black. Never pure #000.</div></div>
+      <div class="sw"><i style="background:var(--char)"></i><div><b>Charcoal</b><code>#151412</code>Surfaces, fog, matte ground.</div></div>
+      <div class="sw"><i style="background:var(--stone)"></i><div><b>Stone</b><code>#8D8A83</code>Architecture, secondary type.</div></div>
+      <div class="sw"><i style="background:var(--bone)"></i><div><b>Bone</b><code>#ECE7DE</code>Headlines and lit stone.</div></div>
+      <div class="sw"><i style="background:var(--tungsten)"></i><div><b>Tungsten</b><code>#FFC58A</code>Light only. Chapter 03's human moments.</div></div>
+      <div class="sw"><i style="background:var(--purple)"></i><div><b>Purple</b><code>#5E23DC</code>Placeholder for the brand value. Swap when we have it.</div></div>
+    </div>
+    <div class="cols">
+      <div>
+        <h3>The seven purple moments</h3>
+        <ul class="plist">
+          <li><b>24%</b>A rim of light on the six solid figures</li>
+          <li><b>61%</b>Verified locks</li>
+          <li><b>64%</b>Responsive locks</li>
+          <li><b>67%</b>Quality locks</li>
+          <li><b>70%</b>Consistent locks</li>
+          <li><b>73%</b>The keystone seats and keeps glowing</li>
+          <li><b>97%</b>The lockup mark and the primary button</li>
+        </ul>
+      </div>
+      <div>
+        <h3>Light by chapter</h3>
+        <ul class="plist n">
+          <li><b>01</b>One distant warm source in fog</li>
+          <li><b>02</b>Flat overhead wash; figures dissolve into fog</li>
+          <li><b>03</b>Tungsten pools, cool night outside</li>
+          <li><b>04</b>Glass against a tall light panel</li>
+          <li><b>05</b>Studio key with soft shadow, purple from below</li>
+          <li><b>06</b>One overhead light and dust</li>
+          <li><b>07</b>Fades to flat for the 2D lockup</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- MOTION & SOUND -->
+  <section id="motion">
+    <div class="sh"><span class="mono">Motion &amp; sound</span><h2 class="disp">Weight and inertia</h2><p>The camera behaves like it's on a dolly: it has mass, it eases into moves, and it never jumps to the scroll position.</p></div>
+    <ul class="rules">
+      <li><b>Damped camera</b>The camera chases the scroll position through a spring. Stopping the scroll lets it settle over about half a second.</li>
+      <li><b>Scroll speed</b>Fast scrolling widens the lens up to 3° and loosens type tracking slightly. Both relax within 600 ms. Holds compress but are never skipped.</li>
+      <li><b>Cursor</b>The badge tilts up to 6° toward the pointer. Nearby figures and dust drift away from it. All of it should feel subconscious.</li>
+      <li><b>Reduced motion</b>Camera moves become crossfades between these still frames. No lens or speed effects. The story stays the same.</li>
+    </ul>
+    <div class="tbl-wrap">
+      <table>
+        <thead><tr><th>Chapter</th><th>Camera move</th><th>Type behaviour</th><th>Sound</th></tr></thead>
+        <tbody>
+          <tr><td>01</td><td>Long dolly in from black</td><td>Words at three depths; AGENT passes through the lens</td><td>Sub-bass rises from silence</td></tr>
+          <tr><td>02</td><td>Walk-through at eye level</td><td>Headline, then three held beats</td><td>Room tone, then near silence</td></tr>
+          <tr><td>03</td><td>Rise, push through a floor, drift</td><td>Small spoken lines</td><td>Distant interiors, a phone buzz</td></tr>
+          <tr><td>04</td><td>Slow orbit</td><td>One line per added piece</td><td>Glass resonance per piece</td></tr>
+          <tr><td>05</td><td>Pull back to three-quarter orbit</td><td>Labels lock with parts</td><td>Weighted click per lock, resolving chord</td></tr>
+          <tr><td>06</td><td>Pull back into darkness</td><td>Stories appear and fade</td><td>Thins to full silence</td></tr>
+          <tr><td>07</td><td>Push into the keystone, flatten</td><td>Statement, then lockup</td><td>One resolved tone</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p style="color:var(--stone-2);max-width:68ch;margin-top:20px;font-size:15px">Sound is off until the viewer turns it on. It's generated live in the browser, so there are no licensing costs and it can follow the scroll exactly.</p>
+  </section>
+
+  <!-- EPILOGUE -->
+  <section id="epilogue">
+    <div class="sh"><span class="mono">After the film</span><h2 class="disp">What makes an agent trusted?</h2><p>The "See how trust is earned" button leads here. Each badge part maps to one product dimension. It shows no scores, only what each one means. Select a dimension to see its part.</p></div>
+    <div class="proof">
+      <div class="stage"><svg id="proofsvg" viewBox="0 0 300 265" role="img" aria-label="The Keystone badge, with the part for the selected dimension highlighted"></svg></div>
+      <div>
+        <ul class="dims" id="dims"></ul>
+        <p class="flag">The product team needs to confirm these mappings and the wording.</p>
+      </div>
+    </div>
+    <div class="cols" style="margin-top:56px">
+      <div>
+        <h3>Three quality tiers, chosen on load</h3>
+        <ul class="plist n">
+          <li><b>Full</b>Desktop GPU: everything on this page</li>
+          <li><b>Lite</b>Phones: about 120 figures, frosted instead of refractive glass, shorter camera paths, more type-led</li>
+          <li><b>2D</b>Weak GPU or no WebGL: these stills and the type, crossfading on scroll</li>
+        </ul>
+      </div>
+      <div>
+        <h3>Accessible by default</h3>
+        <ul class="plist n">
+          <li><b>DOM</b>The whole story is real HTML text underneath the 3D</li>
+          <li><b>Keys</b>The page scrolls with the keyboard and every button is reachable</li>
+          <li><b>Motion</b>Reduced-motion users get the crossfade version</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- PICKS -->
+  <section id="picks">
+    <div class="sh"><span class="mono">Checkpoint</span><h2 class="disp">Your picks</h2><p>Choose, add notes on any frame, then copy everything and paste it into the chat.</p></div>
+    <form class="picks" id="pickform">
+      <fieldset>
+        <legend>Badge</legend>
+        <div class="opts">
+          <label><input type="radio" name="badge" id="pick-badge-a" value="A · Keystone" checked> A · Keystone</label>
+          <label><input type="radio" name="badge" id="pick-badge-b" value="B · Threshold"> B · Threshold</label>
+          <label><input type="radio" name="badge" id="pick-badge-c" value="C · Strata"> C · Strata</label>
+        </div>
+      </fieldset>
+      <fieldset>
+        <legend>Type</legend>
+        <div class="opts">
+          <label><input type="radio" name="type" id="pick-type-a" value="A · Archivo (structural)" checked> A · Archivo</label>
+          <label><input type="radio" name="type" id="pick-type-b" value="B · Big Shoulders (monumental)"> B · Big Shoulders</label>
+        </div>
+      </fieldset>
+      <fieldset>
+        <legend><label for="pick-notes">Notes on frames, copy or anything else</label></legend>
+        <textarea id="pick-notes" placeholder="e.g. Ch02: fewer shards, more fading. Ch03 moment 3 needs to read faster."></textarea>
+      </fieldset>
+      <div class="row"><button type="submit">Copy my picks</button><span id="copy-status" role="status"></span></div>
+      <textarea id="copy-out" readonly aria-label="Your picks as text"></textarea>
+    </form>
+    <div class="next">
+      <h3>What happens next</h3>
+      <p>Phase 2 is a technical spike. It sets up the scroll engine, the damped camera and the quality tiers, and builds Chapter 01 at full quality in the project folder. You review it in the browser before we build the other chapters.</p>
+    </div>
+  </section>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/three@0.158.0/build/three.min.js" integrity="sha384-5UGTcMIxVUKFeJH0zOS3lqMAZNBG+fCXJbi3UglUq6ABO4MQJu6rxNa+MPP+qtwq" crossorigin="anonymous"></script>
+<script>
+(function(){
+"use strict";
+const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+/* ---------- grain ---------- */
+try{
+  const c=document.createElement('canvas');c.width=c.height=160;const g=c.getContext('2d');const d=g.createImageData(160,160);
+  for(let i=0;i<d.data.length;i+=4){const v=Math.random()*255;d.data[i]=d.data[i+1]=d.data[i+2]=v;d.data[i+3]=255;}
+  g.putImageData(d,0,0);document.documentElement.style.setProperty('--grain','url('+c.toDataURL()+')');
+}catch(e){}
+
+/* ---------- shared badge geometry (math coords, y up) ---------- */
+const A={r1:.62,r2:1,h:1.05,n:9,gap:.012};
+function keystoneParts(){
+  const {r1,r2,h,n,gap}=A, vous=[]; let key=null;
+  for(let i=0;i<n;i++){
+    const a0=Math.PI-i*Math.PI/n-gap, a1=Math.PI-(i+1)*Math.PI/n+gap;
+    const ro=i===4?r2+.17:r2;
+    const pts=[[Math.cos(a0)*r1,h+Math.sin(a0)*r1],[Math.cos(a0)*ro,h+Math.sin(a0)*ro],[Math.cos(a1)*ro,h+Math.sin(a1)*ro],[Math.cos(a1)*r1,h+Math.sin(a1)*r1]];
+    if(i===4) key=pts; else vous.push(pts);
+  }
+  return {
+    plinth:[[-1.3,-.24],[1.3,-.24],[1.3,-.03],[-1.3,-.03]],
+    pierL:[[-r2,0],[-r1,0],[-r1,h],[-r2,h]],
+    pierR:[[r1,0],[r2,0],[r2,h],[r1,h]],
+    vous, key
+  };
+}
+const KP=keystoneParts();
+
+/* ---------- SVG badges ---------- */
+const NS='http://www.w3.org/2000/svg';
+const m2s=(x,y)=>[(x+1.5)*100,(2.36-y)*100];
+const pathOf=pts=>'M'+pts.map(p=>m2s(p[0],p[1]).map(v=>v.toFixed(1)).join(' ')).join(' L')+' Z';
+function oct(cx,cy,R,ch){const k=R*ch;return [[cx-R+k,cy-R],[cx+R-k,cy-R],[cx+R,cy-R+k],[cx+R,cy+R-k],[cx+R-k,cy+R],[cx-R+k,cy+R],[cx-R,cy+R-k],[cx-R,cy-R+k]];}
+function ringPath(Ro,Ri){return pathOf(oct(0,1.05,Ro,.3))+' '+pathOf(oct(0,1.05,Ri,.3).reverse());}
+
+const LABELS=['Verified','Responsive','Quality','Consistent','Trusted'];
+const CONCEPTS=[
+  {id:'a',name:'Keystone',rec:true,
+   desc:'An arch can\'t stand until its keystone is set, and the keystone always goes in last. The Chapter 01 doorway is this arch with the keystone missing.',
+   parts:[
+     {d:[pathOf(KP.plinth)],dx:0,dy:30,cls:'t3'},
+     {d:[pathOf(KP.pierL)],dx:-34,dy:0,cls:'t2'},
+     {d:[pathOf(KP.pierR)],dx:34,dy:0,cls:'t2'},
+     {d:KP.vous.map(pathOf),dx:0,dy:-24},
+     {d:[pathOf(KP.key)],dx:0,dy:-52,cls:'trust'}]},
+  {id:'b',name:'Threshold',
+   desc:'A doorframe that closes the loop with the Chapter 01 portal. The final part is the light inside the opening. It reads clearly, but it\'s closer to a house icon.',
+   parts:[
+     {d:[pathOf([[-1.12,-.22],[1.12,-.22],[1.12,-.02],[-1.12,-.02]])],dx:0,dy:30,cls:'t3'},
+     {d:[pathOf([[-.92,0],[-.66,0],[-.66,1.72],[-.92,1.72]])],dx:-34,dy:0,cls:'t2'},
+     {d:[pathOf([[.66,0],[.92,0],[.92,1.72],[.66,1.72]])],dx:34,dy:0,cls:'t2'},
+     {d:[pathOf([[-1.08,1.75],[1.08,1.75],[1.08,2.02],[-1.08,2.02]])],dx:0,dy:-30},
+     {d:[pathOf([[-.6,.04],[.6,.04],[.6,1.68],[-.6,1.68]])],dx:0,dy:0,s:.4,cls:'trust'}]},
+  {id:'c',name:'Strata',
+   desc:'Five nested rings, like layers of reputation. Very ownable as a seal, but the least architectural, and it loses the arch metaphor.',
+   parts:[1.18,.93,.69].map((R,i)=>({d:[ringPath(R,R-.17)],dx:0,dy:0,s:1.18+i*.04,cls:i===0?'t3':i===1?'t2':''}))
+     .concat([{d:[ringPath(.46,.32)],dx:0,dy:0,s:1.3},{d:[pathOf(oct(0,1.05,.24,.3))],dx:0,dy:0,s:.2,cls:'trust'}])}
+];
+
+function drawParts(svg,parts){
+  svg.innerHTML='';
+  return parts.map((p,i)=>{
+    const g=document.createElementNS(NS,'g');g.setAttribute('class','part '+(p.cls||''));
+    g.style.setProperty('--dx',p.dx);g.style.setProperty('--dy',p.dy);if(p.s)g.style.setProperty('--s',p.s);
+    p.d.forEach(d=>{const el=document.createElementNS(NS,'path');el.setAttribute('d',d);el.setAttribute('fill-rule','evenodd');g.appendChild(el);});
+    svg.appendChild(g);return g;
+  });
+}
+
+const host=document.getElementById('badges');
+CONCEPTS.forEach((c,ci)=>{
+  const card=document.createElement('article');card.className='badge'+(c.rec?' rec':'');
+  card.innerHTML=`<div class="stage"><svg viewBox="0 0 300 265" role="img" aria-label="${c.name} badge concept"></svg></div>
+    <div class="meta"><h3>${String.fromCharCode(65+ci)} · ${c.name}${c.rec?' <span class="mono">Recommended</span>':''}</h3><p>${c.desc}</p></div>
+    <ol>${LABELS.map((l,i)=>`<li class="${i===4?'trust':''}"><span class="k">${i+1}</span><span>${l}</span><span class="s"></span></li>`).join('')}</ol>
+    <div class="ctrl"><label class="mono" for="rng-${c.id}">Parts</label><input type="range" id="rng-${c.id}" min="0" max="5" step="1" value="5"><button type="button" id="play-${c.id}">Play</button></div>`;
+  host.appendChild(card);
+  const gs=drawParts(card.querySelector('svg'),c.parts);
+  const lis=[...card.querySelectorAll('li')];
+  const rng=card.querySelector('input');
+  let cur=5;
+  function set(v,anim){
+    gs.forEach((g,i)=>{
+      const on=i<v;
+      g.classList.toggle('on',on);g.classList.toggle('off',!on);
+      if(anim && on && i>=cur){g.classList.remove('flash');void g.getBBox();g.classList.add('flash');}
+      lis[i].classList.toggle('on',on);
+      lis[i].querySelector('.s').textContent=on?'Locked':'·';
+    });
+    cur=v;rng.value=v;
+  }
+  set(5,false);
+  rng.addEventListener('input',()=>set(+rng.value,true));
+  let timer=null;
+  card.querySelector('button').addEventListener('click',()=>{
+    clearInterval(timer);set(0,false);let k=0;
+    timer=setInterval(()=>{k++;set(k,true);if(k>=5)clearInterval(timer);},reduce?250:750);
+  });
+});
+
+/* lockup mark + proof */
+(function(){
+  const lm=document.getElementById('lockmark');
+  drawParts(lm,CONCEPTS[0].parts).forEach(g=>g.classList.add('on'));
+})();
+(function(){
+  const svg=document.getElementById('proofsvg');
+  const gs=drawParts(svg,CONCEPTS[0].parts);gs.forEach(g=>g.classList.add('on'));
+  const D=[
+    ['Plinth · Verified','Property verification','Listings are checked against the actual property.'],
+    ['Left pier · Responsive','Responsiveness','Replies when buyers and sellers need an answer.'],
+    ['Right pier · Quality','Listing quality','Accurate details, real photos, honest descriptions.'],
+    ['Stones · Consistent','Consistency','The same standard on every listing, over time.'],
+    ['Keystone · Trusted','Professional behaviour','Doing the right thing, including when it costs the deal.']
+  ];
+  const ul=document.getElementById('dims');
+  ul.innerHTML=D.map((d,i)=>`<li><button type="button" id="dim-${i}" aria-pressed="false"><span class="k">${d[0]}</span><span class="v"><b>${d[1]}</b><span>${d[2]}</span></span></button></li>`).join('');
+  let act=-1;
+  function sel(i){
+    act=(act===i)?-1:i;
+    gs.forEach((g,j)=>g.classList.toggle('dim',act>=0&&j!==act));
+    [...ul.children].forEach((li,j)=>{li.classList.toggle('act',j===act);li.querySelector('button').setAttribute('aria-pressed',j===act);});
+  }
+  ul.querySelectorAll('button').forEach((b,i)=>{b.addEventListener('click',()=>sel(i));b.addEventListener('mouseenter',()=>{if(act!==i)sel(i);});});
+})();
+
+/* ---------- scroll map ---------- */
+(function(){
+  const CH=[
+    ['01','Everyone is an agent',0,14,'Dolly in from black'],
+    ['02','But trust is different',11,28,'Walk through the crowd'],
+    ['03','Moments that matter',26,47,'Rise · enter tower · drift'],
+    ['04','Built in small moments',44,60,'Slow orbit'],
+    ['05','The badge',57,76,'Pull back · ¾ orbit · 5 locks'],
+    ['06','The reveal',73,89,'Pull back into dark'],
+    ['07','Final statement',87,100,'Push in · flatten to lockup']
+  ];
+  const grid=document.getElementById('mapgrid');let h='';
+  CH.forEach(c=>{h+=`<div class="lab"><b>${c[0]}</b>${c[1]}</div><div class="track"><div class="bar" style="left:${c[2]}%;width:${c[3]-c[2]}%">${c[4]}</div></div>`;});
+  const P=[24,61,64,67,70,73,97];
+  h+=`<div class="lab"><b>◆</b>Purple</div><div class="track">${P.map(p=>`<span class="dot" style="left:${p}%" title="${p}%"></span>`).join('')}</div>`;
+  const S=[[0,.02],[5,.12],[12,.3],[17,.45],[23,.35],[26,.08],[30,.38],[40,.45],[47,.5],[56,.55],[61,.62],[67,.7],[73,.85],[78,.6],[84,.28],[89,0],[93,0],[95,.42],[100,.25]];
+  const pts=S.map(([x,y])=>`${x},${(1-y)*30+2}`).join(' ');
+  h+=`<div class="lab"><b>♪</b>Sound</div><div class="track" style="height:44px"><span class="hush" style="left:89%;width:4%"></span><svg viewBox="0 0 100 34" preserveAspectRatio="none" aria-hidden="true"><polyline points="${pts}" fill="none" stroke="#bab5ac" stroke-width="1.5" vector-effect="non-scaling-stroke"/></svg></div>`;
+  h+=`<div></div><div class="ticks">${[0,10,20,30,40,50,60,70,80,90,100].map(t=>`<span style="left:${t}%">${t}</span>`).join('')}</div>`;
+  grid.innerHTML=h;
+})();
+
+/* ---------- picks ---------- */
+document.getElementById('pickform').addEventListener('submit',e=>{
+  e.preventDefault();
+  const f=e.target, st=document.getElementById('copy-status'), out=document.getElementById('copy-out');
+  const txt=`Trusted Agent storyboard picks\nBadge: ${f.badge.value}\nType: ${f.type.value}\nNotes: ${document.getElementById('pick-notes').value.trim()||'none'}`;
+  const fallback=()=>{out.value=txt;out.classList.add('show');out.focus();out.select();st.textContent='Copy the selected text and paste it into the chat.';};
+  try{navigator.clipboard.writeText(txt).then(()=>{st.textContent='Copied. Paste it into the chat.';},fallback);}catch(err){fallback();}
+});
+
+/* ---------- 3D frames ---------- */
+function noGL(){document.querySelectorAll('.frame canvas').forEach(c=>c.closest('.frame').classList.add('nogl'));}
+if(!window.THREE){noGL();return;}
+const T=THREE;
+let R;
+try{
+  R=new T.WebGLRenderer({antialias:true,preserveDrawingBuffer:true,powerPreference:'high-performance'});
+}catch(e){noGL();return;}
+R.setPixelRatio(1);
+R.outputColorSpace=T.SRGBColorSpace;
+R.toneMapping=T.ACESFilmicToneMapping;R.toneMappingExposure=1;
+R.shadowMap.enabled=true;R.shadowMap.type=T.PCFSoftShadowMap;
+
+function rng(seed){return function(){seed|=0;seed=seed+0x6D2B79F5|0;let t=Math.imul(seed^seed>>>15,1|seed);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+
+const env=(()=>{
+  const pm=new T.PMREMGenerator(R);const s=new T.Scene();
+  s.add(new T.Mesh(new T.BoxGeometry(20,10,20),new T.MeshBasicMaterial({color:0x0b0b0b,side:T.BackSide})));
+  const panel=(w,h,x,y,z,rx,ry,k)=>{const m=new T.Mesh(new T.PlaneGeometry(w,h),new T.MeshBasicMaterial({color:new T.Color(k,k*.97,k*.92),side:T.DoubleSide}));m.position.set(x,y,z);m.rotation.set(rx,ry,0);s.add(m);};
+  panel(8,2,0,4.9,0,Math.PI/2,0,3);panel(3,6,-9.9,1,0,0,Math.PI/2,1.4);panel(3,6,9.9,1,-3,0,-Math.PI/2,.5);
+  return pm.fromScene(s,.04).texture;
+})();
+
+const glowTex=(()=>{const c=document.createElement('canvas');c.width=c.height=128;const g=c.getContext('2d');const r=g.createRadialGradient(64,64,0,64,64,64);r.addColorStop(0,'rgba(255,255,255,1)');r.addColorStop(.22,'rgba(255,255,255,.5)');r.addColorStop(1,'rgba(255,255,255,0)');g.fillStyle=r;g.fillRect(0,0,128,128);const t=new T.CanvasTexture(c);t.colorSpace=T.SRGBColorSpace;return t;})();
+function glow(color,size,op){const s=new T.Sprite(new T.SpriteMaterial({map:glowTex,color,blending:T.AdditiveBlending,transparent:true,depthWrite:false,opacity:op==null?1:op,fog:false}));s.scale.set(size,size,1);return s;}
+const std=(color,rough,metal,o)=>new T.MeshStandardMaterial(Object.assign({color,roughness:rough==null?.8:rough,metalness:metal||0},o||{}));
+const PURPLE=new T.Color(0x7a45ff);
+
+const BODY=new T.CapsuleGeometry(.21,.9,4,14);BODY.translate(0,.66,0);
+const HEAD=new T.SphereGeometry(.14,18,14);HEAD.translate(0,1.5,0);
+function person(mat){const g=new T.Group();[BODY,HEAD].forEach(geo=>{const m=new T.Mesh(geo,mat);m.castShadow=true;m.receiveShadow=true;g.add(m);});return g;}
+function ground(color,rough){const m=new T.Mesh(new T.PlaneGeometry(240,240),std(color,rough));m.rotation.x=-Math.PI/2;m.receiveShadow=true;return m;}
+function box(w,h,d,mat,x,y,z){const m=new T.Mesh(new T.BoxGeometry(w,h,d),mat);m.position.set(x||0,y||0,z||0);m.castShadow=m.receiveShadow=true;return m;}
+function beam(a,b,r,mat){const dir=b.clone().sub(a);const len=dir.length();const m=new T.Mesh(new T.CylinderGeometry(r,r,len,6),mat);m.position.copy(a).add(b).multiplyScalar(.5);m.quaternion.setFromUnitVectors(new T.Vector3(0,1,0),dir.normalize());return m;}
+function blob(x,z,size,op){const m=new T.Mesh(new T.PlaneGeometry(size,size),new T.MeshBasicMaterial({map:glowTex,color:0x000000,transparent:true,opacity:op,depthWrite:false}));m.rotation.x=-Math.PI/2;m.position.set(x,.01,z);return m;}
+function extrude(pts,depth){depth=depth||.34;const sh=new T.Shape(pts.map(p=>new T.Vector2(p[0],p[1])));const g=new T.ExtrudeGeometry(sh,{depth,bevelEnabled:true,bevelThickness:.014,bevelSize:.01,bevelSegments:2,curveSegments:1});g.translate(0,0,-depth/2);return g;}
+function centroid(pts){let x=0,y=0;pts.forEach(p=>{x+=p[0];y+=p[1];});return [x/pts.length,y/pts.length];}
+function house(mat){const g=new T.Group();const b=box(.55,.32,.45,mat,0,.16,0);g.add(b);const r=new T.Mesh(extrude([[-.32,0],[.32,0],[0,.24]],.47),mat);r.position.y=.32;r.castShadow=true;g.add(r);return g;}
+function arch(m,opts){
+  opts=opts||{};const g=new T.Group();
+  const add=(pts,mat,name)=>{const mesh=new T.Mesh(extrude(pts),mat);mesh.castShadow=mesh.receiveShadow=true;mesh.name=name;g.add(mesh);return mesh;};
+  if(!opts.noPlinth)add(KP.plinth,m.plinth||m.stone,'plinth');
+  add(KP.pierL,m.pier||m.stone,'pierL');add(KP.pierR,m.pier||m.stone,'pierR');
+  KP.vous.forEach((v,i)=>add(v,m.vous||m.stone,'v'+i));
+  if(!opts.noKey)add(KP.key,m.key||m.stone,'key');
+  return g;
+}
+
+function shoot(id,build){
+  const fig=document.getElementById(id);if(!fig)return;const cv=fig.querySelector('canvas');
+  try{
+    const w=cv.width,h=cv.height;R.setSize(w,h,false);
+    const sc=new T.Scene();const cam=new T.PerspectiveCamera(40,w/h,.05,300);
+    build(sc,cam);cam.updateProjectionMatrix();
+    R.render(sc,cam);
+    cv.getContext('2d').drawImage(R.domElement,0,0,w,h);
+  }catch(e){fig.classList.add('nogl');console.warn(id,e);}
+}
+
+/* 01 · portal in the dark */
+shoot('f01',(sc,cam)=>{
+  sc.background=new T.Color(0x030303);sc.fog=new T.FogExp2(0x030303,.026);
+  cam.fov=34;cam.position.set(0,1.15,0);cam.lookAt(0,2.1,-28);
+  sc.add(ground(0x0d0c0b,.38));
+  const a=arch({stone:std(0x6f6a62,.85)},{noKey:true});a.scale.setScalar(1.7);a.position.set(2.6,.41,-28);sc.add(a);
+  const p=new T.PointLight(0xffe0bc,70,0,2);p.position.set(2.6,2.3,-28.9);sc.add(p);
+  const g1=glow(new T.Color(1.7,1.5,1.25),2.4);g1.position.set(2.6,2.35,-29.2);sc.add(g1);
+  const g2=glow(new T.Color(.45,.4,.35),10,.45);g2.position.set(2.6,2.4,-31);sc.add(g2);
+});
+
+/* 02 · the crowd fractures */
+shoot('f02',(sc,cam)=>{
+  const bg=0x080807;sc.background=new T.Color(bg);sc.fog=new T.FogExp2(bg,.048);
+  cam.fov=40;cam.position.set(0,1.7,7);cam.lookAt(0,1.75,-8);
+  sc.add(ground(0x0e0d0c,.95));
+  sc.add(new T.HemisphereLight(0xcfc8bd,0x070707,.4));
+  const d=new T.DirectionalLight(0xf3ede2,1.5);d.position.set(4,14,10);sc.add(d);
+  const r=rng(11);
+  const S={solid:[],dim:[],ghost:[],wire:[],frag:[]};
+  const solid=[[-2.3,-2.5],[1.7,-5.5],[-4.9,-9],[4.3,-11.5],[-.7,-14.5],[2.9,-19]];
+  solid.forEach(([x,z])=>S.solid.push({x,z}));
+  for(let i=0;i<420;i++){
+    const x=(r()-.5)*32,z=2.5-r()*46;
+    if(solid.some(([sx,sz])=>Math.hypot(sx-x,sz-z)<.9))continue;
+    const u=r();const k=u<.42?'ghost':u<.55?'wire':u<.84?'dim':'frag';S[k].push({x,z,s:.94+r()*.12});
+  }
+  const inst=(list,mat)=>{[BODY,HEAD].forEach(geo=>{const im=new T.InstancedMesh(geo,mat,list.length);const M=new T.Matrix4();list.forEach((f,i)=>{const s=f.s||1;M.makeScale(s,s,s);M.setPosition(f.x,0,f.z);im.setMatrixAt(i,M);});sc.add(im);});};
+  inst(S.dim,std(0x403e3a,.95));
+  inst(S.ghost,std(0xa29d93,.6,0,{transparent:true,opacity:.12,depthWrite:false}));
+  inst(S.wire,new T.MeshBasicMaterial({color:0x77736b,wireframe:true,transparent:true,opacity:.18}));
+  inst(S.solid,std(0xebe5da,.5));
+  // shards where figures broke apart
+  const shardGeo=new T.BoxGeometry(1,1,1);const shards=new T.InstancedMesh(shardGeo,std(0x8f8a81,.7,0,{transparent:true,opacity:.42}),S.frag.length*12);
+  const M=new T.Matrix4(),q=new T.Quaternion(),e=new T.Euler(),v=new T.Vector3(),sv=new T.Vector3();let n=0;
+  S.frag.forEach(f=>{for(let k=0;k<12;k++){const s=.04+r()*.13;sv.set(s,s*(.5+r()),s*(.4+r()*.6));q.setFromEuler(e.set(r()*6,r()*6,r()*6));v.set(f.x+(r()-.5)*.8,.1+r()*1.9,f.z+(r()-.5)*.8);M.compose(v,q,sv);shards.setMatrixAt(n++,M);}});
+  sc.add(shards);
+  // floating property blocks + threads
+  const blockM=std(0x8a857c,.8),threadM=new T.MeshBasicMaterial({color:0xece7de,transparent:true,opacity:.65}),brokenM=new T.MeshBasicMaterial({color:0xece7de,transparent:true,opacity:.16});
+  S.solid.forEach(f=>{
+    const bx=f.x+(r()-.5)*1.2,by=4.6+r()*1.2,bz=f.z-.6;
+    sc.add(box(1.1+r()*.6,.38,.8,blockM,bx,by,bz));
+    sc.add(beam(new T.Vector3(f.x,1.66,f.z),new T.Vector3(bx,by-.19,bz),.012,threadM));
+    sc.add(blob(f.x,f.z,1.3,.75));
+    const halo=glow(PURPLE.clone().multiplyScalar(1.1),2.1,.55);halo.position.set(f.x,1.0,f.z-.35);sc.add(halo);
+    const pl=new T.PointLight(0x7a45ff,5,3,2);pl.position.set(f.x,1.3,f.z-.6);sc.add(pl);
+  });
+  S.ghost.filter(f=>f.z<0&&f.z>-24&&Math.abs(f.x)<9).slice(0,16).forEach(f=>{
+    const by=4.6+r()*1.4;sc.add(box(.9+r()*.5,.34,.7,std(0x3a3833,.9),f.x,by,f.z-.4));
+    sc.add(beam(new T.Vector3(f.x,by-.2,f.z-.4),new T.Vector3(f.x,by-.2-(.6+r()*1.2),f.z-.4),.01,brokenM));
+    sc.add(beam(new T.Vector3(f.x,1.68,f.z),new T.Vector3(f.x,1.68+.3+r()*.5,f.z),.01,brokenM));
+  });
+});
+
+/* 03 · the tower at night */
+shoot('f03',(sc,cam)=>{
+  const bg=0x050607;sc.background=new T.Color(bg);sc.fog=new T.FogExp2(bg,.03);
+  cam.fov=36;cam.position.set(8.4,2.4,12.5);cam.lookAt(-.3,5.3,0);
+  sc.add(ground(0x0b0a09,.55));
+  sc.add(new T.HemisphereLight(0x8d97aa,0x050505,.3));
+  const moon=new T.DirectionalLight(0x9fabc0,.55);moon.position.set(-10,20,8);sc.add(moon);
+  const slab=std(0x4c4943,.9),col=std(0x302e2a,.9);
+  for(let i=0;i<10;i++){const y=i*1.35;sc.add(box(7,.16,5,slab,0,y,0));
+    if(i<9)[[-3.2,-2.2],[3.2,-2.2],[-3.2,2.2],[3.2,2.2],[0,-2.2],[0,2.2]].forEach(([x,z])=>sc.add(box(.16,1.19,.16,col,x,y+.675,z)));}
+  const L1=new T.PointLight(0xffc48a,16,0,2);L1.position.set(-1.2,6.4,.6);sc.add(L1);
+  const L2=new T.PointLight(0xffc48a,10,0,2);L2.position.set(1.6,6.4,-1);sc.add(L2);
+  const a=person(std(0xdcd5c8,.7));a.position.set(-.7,5.48,.9);sc.add(a);
+  const b=person(std(0x8f8a81,.8));b.position.set(.55,5.48,.7);sc.add(b);
+  const tab=box(1,.03,.7,std(0xece7de,.4,0,{emissive:0x3a2a1a}),-.05,6.25,-.4);tab.rotation.x=-.35;sc.add(tab);
+  const g=glow(new T.Color(1,.68,.38),7,.22);g.position.set(0,6.1,2.8);sc.add(g);
+  [[2.2,2.7+1.35*7],[-2.6,2.7+1.35*2]].forEach(([x,y])=>{const w=glow(new T.Color(.5,.36,.2),2.2,.35);w.position.set(x,y-2,2.6);sc.add(w);});
+});
+
+/* moments */
+function room(sc,cam,bg,pos,look,fov){sc.background=new T.Color(bg);cam.fov=fov||36;cam.position.set(...pos);cam.lookAt(...look);sc.add(ground(0x121110,.75));}
+function spot(color,I,pos,target,angle,shadow){const s=new T.SpotLight(color,I,0,angle||.55,.7,2);s.position.set(...pos);s.target.position.set(...target);if(shadow){s.castShadow=true;s.shadow.mapSize.set(1024,1024);s.shadow.bias=-.0005;}return [s,s.target];}
+
+shoot('m1',(sc,cam)=>{
+  room(sc,cam,0x070606,[0,2.25,4.4],[0,1,0],34);
+  sc.add(new T.HemisphereLight(0xffffff,0x000000,.08));
+  sc.add(...spot(0xffd2a6,70,[.6,5,1.4],[0,1,0],.5,true));
+  const g=new T.Group();g.position.set(0,1.02,0);g.rotation.x=.12;
+  g.add(box(1.7,.05,1.15,std(0xe9e3d8,.55)));
+  const h=house(std(0xd8d1c4,.6));h.position.y=.025;g.add(h);
+  const fl=glow(new T.Color(1.6,1.05,.55),.55);fl.position.set(-.24,.42,.22);g.add(fl);
+  sc.add(g);
+  sc.add(beam(new T.Vector3(-1.05,1.45,.35),new T.Vector3(-.26,1.48,.25),.006,new T.MeshBasicMaterial({color:0xffc58a,transparent:true,opacity:.7})));
+  const ag=person(std(0xe6dfd2,.6));ag.position.set(-1.3,0,.25);sc.add(ag);
+  const bu=person(std(0x8f8a81,.8));bu.position.set(1.25,0,-.1);sc.add(bu);
+});
+shoot('m2',(sc,cam)=>{
+  room(sc,cam,0x070606,[0,2.3,4.8],[0,.9,0],34);
+  sc.add(new T.HemisphereLight(0xffffff,0x000000,.07));
+  sc.add(...spot(0xffd2a6,60,[-.9,4.6,1],[-.8,.6,0],.42,true));
+  sc.add(...spot(0xffd2a6,12,[1,4.6,1],[.9,.6,0],.42,false));
+  const pm=std(0x3a3733,.85);
+  sc.add(box(.8,.6,.8,pm,-.85,.3,-.2));sc.add(box(.8,.6,.8,pm,.9,.3,-.2));
+  const h1=house(std(0xe2dbcf,.6));h1.position.set(-.85,.6,-.2);sc.add(h1);
+  const h2=house(new T.MeshBasicMaterial({color:0x8d8a83,wireframe:true,transparent:true,opacity:.28}));h2.position.set(.9,.6,-.2);sc.add(h2);
+  const ag=person(std(0xe6dfd2,.6));ag.position.set(.05,0,.9);sc.add(ag);
+  const bu=person(std(0x8f8a81,.8));bu.position.set(1.45,0,1.05);sc.add(bu);
+});
+shoot('m3',(sc,cam)=>{
+  room(sc,cam,0x0a0807,[.9,2.6,5.6],[1,.5,0],38);
+  sc.add(new T.HemisphereLight(0xffe6cc,0x000000,.12));
+  const sun=new T.DirectionalLight(0xffc896,2.6);sun.position.set(-9,1.7,1.2);sun.target.position.set(1,0,0);sun.castShadow=true;
+  sun.shadow.mapSize.set(2048,1024);Object.assign(sun.shadow.camera,{left:-7,right:7,top:4,bottom:-4,near:.5,far:30});sun.shadow.bias=-.0006;sc.add(sun,sun.target);
+  const stone=std(0xd9d2c5,.7);
+  sc.add(box(.32,2.7,.32,stone,-.75,1.35,-.5));
+  sc.add(box(.32,1.05,.32,stone,-.2,.525,.55));
+  const se=person(std(0x8f8a81,.8));se.position.set(-1.9,0,.2);sc.add(se);
+  const ag=person(std(0xe6dfd2,.6));ag.position.set(-1.35,0,1.15);sc.add(ag);
+});
+shoot('m4',(sc,cam)=>{
+  room(sc,cam,0x030304,[0,1.6,5],[.5,.85,-1.5],38);
+  const ag=person(std(0xd8d1c4,.7));ag.position.set(-1.4,0,0);sc.add(ag);
+  const ph=new T.PointLight(0xffc58a,3.2,0,2);ph.position.set(-1.2,1.1,.38);sc.add(ph);
+  const pg=glow(new T.Color(1.4,.95,.55),.5);pg.position.set(-1.22,1.08,.32);sc.add(pg);
+  const bu=person(std(0x8f8a81,.8));bu.position.set(2.6,0,-5);sc.add(bu);
+  const cl=new T.PointLight(0xa9c0d8,7,0,2);cl.position.set(2.6,2.4,-4.4);sc.add(cl);
+  sc.add(beam(new T.Vector3(-1.2,.015,.15),new T.Vector3(2.55,.015,-4.9),.007,new T.MeshBasicMaterial({color:0xece7de,transparent:true,opacity:.45})));
+});
+
+/* 04 · glass, not yet an arch */
+shoot('f04',(sc,cam)=>{
+  sc.background=new T.Color(0x060606);sc.environment=env;sc.fog=new T.FogExp2(0x060606,.05);
+  cam.fov=36;cam.position.set(2.5,.7,3.3);cam.lookAt(-1.25,1.45,0);
+  sc.add(ground(0x0c0b0a,.45));
+  const slabM=std(0x1b1a18,.9);
+  [[-3.6,-4.5,1],[-2.2,-5.6,.7],[-.4,-4.8,1.2],[1.6,-5.2,.8],[3.3,-4.6,1.1]].forEach(([x,z,w])=>sc.add(box(w,7,.5,slabM,x,3.5,z)));
+  const pan=new T.Mesh(new T.PlaneGeometry(1.6,5),new T.MeshBasicMaterial({color:new T.Color(2.3,2.2,2.05)}));pan.position.set(-2.4,2.6,-3.8);sc.add(pan);
+  const d=new T.DirectionalLight(0xffffff,.7);d.position.set(2,8,4);sc.add(d);
+  const glass=new T.MeshPhysicalMaterial({color:0xf3efe8,roughness:.1,transmission:1,thickness:.5,ior:1.5,metalness:0,attenuationColor:new T.Color(0xd8cdb8),attenuationDistance:2.2,specularIntensity:1});
+  const r=rng(4);const g=new T.Group();
+  const add=(pts,off)=>{const m=new T.Mesh(extrude(pts),glass);const [cx,cy]=centroid(pts);const ang=Math.atan2(cy-A.h,cx);m.position.set(Math.cos(ang)*off,Math.sin(ang)*off,(r()-.5)*.45);m.rotation.z=(r()-.5)*.22;m.rotation.y=(r()-.5)*.3;g.add(m);return m;};
+  add(KP.pierL,.08);KP.vous.slice(0,6).forEach(v=>add(v,.08+r()*.32));
+  sc.add(g);
+  const warm=new T.MeshBasicMaterial({color:0xffc58a,transparent:true,opacity:.35});
+  [[-1.7,2.4,.9,0],[1.4,2.75,.5,3],[1.9,1.2,1.1,5],[-1.4,.55,1.3,1]].forEach(([x,y,z,vi])=>{
+    const o=glow(new T.Color(1.8,1.2,.65),.42);o.position.set(x,y,z);sc.add(o);
+    const s=new T.Mesh(new T.SphereGeometry(.035,12,8),new T.MeshBasicMaterial({color:new T.Color(2,1.5,1)}));s.position.set(x,y,z);sc.add(s);
+    const [cx,cy]=centroid(vi===1?KP.pierL:KP.vous[Math.min(vi,5)]);sc.add(beam(new T.Vector3(x,y,z),new T.Vector3(cx,cy,0),.004,warm));
+  });
+});
+
+/* 05 · the badge locks */
+shoot('f05',(sc,cam)=>{
+  sc.background=new T.Color(0x070707);sc.environment=env;
+  cam.fov=33;cam.position.set(3.4,1.85,5.6);cam.lookAt(-.35,1.2,0);
+  sc.add(ground(0x0e0d0c,.7));
+  sc.add(new T.HemisphereLight(0xffffff,0x000000,.12));
+  const k=new T.DirectionalLight(0xfff2e2,2.4);k.position.set(-3,6,4);k.castShadow=true;k.shadow.mapSize.set(2048,2048);Object.assign(k.shadow.camera,{left:-3,right:3,top:3.5,bottom:-1,near:.5,far:20});k.shadow.bias=-.0005;sc.add(k);
+  const rim=new T.DirectionalLight(0xc3cad8,.9);rim.position.set(2,3,-5);sc.add(rim);
+  const a=arch({plinth:std(0x57534d,.85),pier:std(0xc4bdb1,.8),vous:std(0xd8d2c6,.75),key:std(0xe9e4da,.32,.65)});
+  const key=a.getObjectByName('key');key.position.y=.44;key.rotation.z=.05;
+  sc.add(a);
+  const pl=new T.PointLight(0x7a45ff,1.6,0,2);pl.position.set(0,1.88,.3);sc.add(pl);
+  const gl=glow(PURPLE.clone().multiplyScalar(1.1),.8,.55);gl.position.set(0,1.88,.25);sc.add(gl);
+});
+
+/* 06 · the badge alone */
+shoot('f06',(sc,cam)=>{
+  sc.background=new T.Color(0x040404);
+  cam.fov=32;cam.position.set(0,1.15,6.6);cam.lookAt(0,.95,0);
+  sc.add(ground(0x0b0a09,.6));
+  sc.add(...spot(0xfff2e2,90,[0,6.5,.8],[0,.8,0],.32,true));
+  const a=arch({plinth:std(0x57534d,.85),pier:std(0xc4bdb1,.8),vous:std(0xd8d2c6,.75),key:std(0xe9e4da,.32,.65,{emissive:0x5e23dc,emissiveIntensity:.55})});
+  a.scale.setScalar(.62);a.position.set(0,.15,0);sc.add(a);
+  const pg=glow(PURPLE.clone().multiplyScalar(.7),.9,.5);pg.position.set(0,.15+2.15*.62,.2);sc.add(pg);
+  const r=rng(9),N=500,pos=new Float32Array(N*3);for(let i=0;i<N;i++){pos[i*3]=(r()-.5)*7;pos[i*3+1]=r()*4;pos[i*3+2]=(r()-.5)*5;}
+  const pg2=new T.BufferGeometry();pg2.setAttribute('position',new T.BufferAttribute(pos,3));
+  sc.add(new T.Points(pg2,new T.PointsMaterial({color:0x9a958c,size:.012,transparent:true,opacity:.55})));
+});
+
+/* 07a · push into the keystone */
+shoot('f07',(sc,cam)=>{
+  sc.background=new T.Color(0x050505);sc.environment=env;
+  cam.fov=48;cam.position.set(.35,1.2,1.25);cam.lookAt(0,1.95,0);
+  sc.add(new T.HemisphereLight(0xffffff,0x000000,.05));
+  const d=new T.DirectionalLight(0xfff2e2,.6);d.position.set(-2,5,3);sc.add(d);
+  const a=arch({stone:std(0xcfc8bc,.8),key:std(0xe9e4da,.3,.7,{emissive:0x5e23dc,emissiveIntensity:.35})});sc.add(a);
+  const pl=new T.PointLight(0x7a45ff,1.4,0,2);pl.position.set(0,1.55,.55);sc.add(pl);
+  const gl=glow(PURPLE.clone().multiplyScalar(1),1.1,.4);gl.position.set(0,1.78,.3);sc.add(gl);
+});
+
+R.dispose();
+})();
+</script>

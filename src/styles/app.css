@@ -1,0 +1,985 @@
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+html {
+  background: #030303;
+}
+body {
+  margin: 0;
+  background: #030303;
+  color: var(--bone);
+  font: 400 16px/1.6 var(--f-body);
+  -webkit-font-smoothing: antialiased;
+  overscroll-behavior: none;
+}
+:focus-visible {
+  outline: 2px solid var(--purple-lit);
+  outline-offset: 3px;
+}
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* ---------- stage ---------- */
+.stage {
+  position: fixed !important;
+  inset: 0;
+  width: 100vw !important;
+  height: 100vh !important;
+  height: 100lvh !important;
+}
+.spacer {
+  pointer-events: none;
+}
+
+/* ---------- chrome ---------- */
+.chrome {
+  --p: 0;
+  --black: 0;
+  --end: 0;
+  --hint: 1;
+}
+.cover,
+.black {
+  position: fixed;
+  inset: 0;
+  background: #030303;
+  pointer-events: none;
+}
+.cover {
+  z-index: 30;
+  transition: opacity 1.6s ease 0.2s;
+}
+.cover--lifted {
+  opacity: 0;
+}
+.black {
+  z-index: 10;
+  opacity: var(--black);
+}
+
+.brand {
+  position: fixed;
+  z-index: 20;
+  top: calc(env(safe-area-inset-top, 0px) + 22px);
+  left: 24px;
+  font: 500 11px/1 var(--f-mono);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--stone);
+  opacity: 0.6;
+}
+
+.rail {
+  position: fixed;
+  z-index: 20;
+  right: 22px;
+  top: 50%;
+  height: 34vh;
+  width: 1px;
+  transform: translateY(-50%);
+  background: rgba(236, 231, 222, 0.12);
+}
+.rail__fill {
+  position: absolute;
+  inset: 0;
+  background: var(--bone);
+  transform-origin: top;
+  transform: scaleY(var(--p));
+}
+.rail__tick {
+  position: absolute;
+  left: -3px;
+  width: 7px;
+  height: 1px;
+  background: rgba(236, 231, 222, 0.35);
+}
+
+.hint {
+  position: fixed;
+  z-index: 20;
+  left: 50%;
+  bottom: calc(env(safe-area-inset-bottom, 0px) + 28px);
+  transform: translateX(-50%);
+  display: grid;
+  justify-items: center;
+  gap: 10px;
+  font: 500 10px/1 var(--f-mono);
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--stone);
+  opacity: 0;
+  pointer-events: none;
+}
+.hint--on {
+  opacity: var(--hint);
+  transition: opacity 1.2s ease;
+  animation: hint-in 1.6s ease 3.4s both;
+}
+.hint i {
+  width: 1px;
+  height: 34px;
+  background: linear-gradient(var(--stone), transparent);
+  animation: hint-line 2.4s ease-in-out infinite;
+  transform-origin: top;
+}
+@keyframes hint-in {
+  from {
+    opacity: 0;
+  }
+}
+@keyframes hint-line {
+  0% {
+    transform: scaleY(0);
+  }
+  50% {
+    transform: scaleY(1);
+  }
+  100% {
+    transform: scaleY(1);
+    opacity: 0;
+  }
+}
+
+.skip {
+  position: fixed;
+  z-index: 40;
+  top: 14px;
+  left: 50%;
+  transform: translate(-50%, -160%);
+  padding: 10px 16px;
+  font: 500 12px/1 var(--f-mono);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--void);
+  background: var(--bone);
+  text-decoration: none;
+  transition: transform 0.3s var(--ease-dolly);
+}
+.skip:focus-visible {
+  transform: translate(-50%, 0);
+}
+
+.endcard {
+  position: fixed;
+  z-index: 15;
+  inset: 0;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: 14px;
+  padding-inline: 24px;
+  text-align: center;
+  opacity: var(--end);
+  pointer-events: none;
+  outline: none;
+}
+.endcard p {
+  margin: 0;
+}
+.endcard__k {
+  font: 500 11px/1 var(--f-mono);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--stone);
+}
+.endcard__t {
+  font-family: var(--f-display);
+  font-weight: 800;
+  font-stretch: 112%;
+  font-size: clamp(28px, 4.4vw, 60px);
+  line-height: 1;
+  text-transform: uppercase;
+}
+.endcard__s {
+  max-width: 42ch;
+  color: var(--stone-2);
+}
+
+.hud {
+  position: fixed;
+  z-index: 50;
+  left: 12px;
+  bottom: 12px;
+  margin: 0;
+  padding: 8px 10px;
+  font: 11px/1.5 var(--f-mono);
+  color: #9f9;
+  background: rgba(0, 0, 0, 0.7);
+  pointer-events: none;
+}
+
+/* ---------- 2D film ---------- */
+.flat {
+  --t: 0;
+  --w1: 0;
+  --w2: 0;
+  --w3: 0;
+  --zoom: 1;
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  background: #030303;
+}
+.flat__glow {
+  position: absolute;
+  left: 50%;
+  top: 46%;
+  width: 70vmax;
+  height: 70vmax;
+  transform: translate(-50%, -50%) scale(calc(0.15 + var(--t) * 1.2));
+  background: radial-gradient(closest-side, rgba(255, 214, 170, 0.32), rgba(120, 80, 45, 0.1) 45%, transparent);
+  opacity: calc(0.35 + var(--t));
+}
+.flat__arch {
+  position: absolute;
+  left: 50%;
+  top: 46%;
+  width: min(34vw, 46vh);
+  transform: translate(-50%, -50%) scale(calc(0.12 + var(--t) * var(--t) * 1.9));
+  overflow: visible;
+}
+.flat__opening {
+  fill: #ffe3c4;
+  filter: drop-shadow(0 0 18px rgba(255, 210, 160, 0.8));
+}
+.flat__stone {
+  fill: #2b2824;
+  stroke: #46413a;
+  stroke-width: 0.8;
+}
+.flat__w {
+  position: absolute;
+  font-family: var(--f-display);
+  font-weight: 800;
+  font-stretch: 112%;
+  text-transform: uppercase;
+  line-height: 0.86;
+  letter-spacing: -0.015em;
+  color: var(--bone);
+  white-space: nowrap;
+}
+.flat__w1 {
+  left: 9vw;
+  top: 18vh;
+  font-size: clamp(36px, 7vw, 110px);
+  opacity: var(--w1);
+}
+.flat__w2 {
+  right: 9vw;
+  top: 58vh;
+  font-weight: 200;
+  font-stretch: 62%;
+  font-size: clamp(44px, 9vw, 140px);
+  opacity: var(--w2);
+}
+.flat__w3 {
+  left: 50%;
+  top: 50%;
+  font-size: clamp(54px, 15vw, 240px);
+  transform: translate(-50%, -50%) scale(var(--zoom));
+  opacity: var(--w3);
+}
+.flat__w3 small {
+  display: block;
+  font-size: 0.3em;
+  font-weight: 200;
+  font-stretch: 62%;
+}
+.flat--still .flat__glow,
+.flat--still .flat__arch {
+  transform: translate(-50%, -50%) scale(1);
+}
+.flat--still .flat__w {
+  transition: opacity 0.9s ease;
+}
+
+@media (max-width: 767px) {
+  .rail {
+    right: 12px;
+  }
+  .brand {
+    left: 16px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .hint i {
+    animation: none;
+  }
+  .cover {
+    transition-duration: 0.4s;
+  }
+}
+
+/* ---------- captions ---------- */
+.captions {
+  position: fixed;
+  inset: 0;
+  /* Above the lockup's ground, so the last line can sit on the purple. */
+  z-index: 13;
+  display: grid;
+  place-items: center;
+  pointer-events: none;
+}
+.cue {
+  --settle: 0;
+  grid-area: 1 / 1;
+  margin: 0;
+  padding-inline: 16px;
+  max-width: 100vw;
+  text-align: center;
+  color: var(--bone);
+  opacity: 0;
+  visibility: hidden;
+  font-family: var(--f-display);
+  text-transform: uppercase;
+  line-height: 0.95;
+  text-wrap: balance;
+  letter-spacing: 0.02em;
+  text-shadow: 0 0 40px rgba(0, 0, 0, 0.85);
+  /* Arrive by settling in scale, never by tracking: line breaks must not change mid-fade. */
+  transform: scale(calc(1 + var(--settle) * 0.06));
+  will-change: transform, opacity;
+}
+/* Sized so each beat holds one line down to a 360px phone. */
+.cue--beat {
+  font-weight: 250;
+  font-stretch: 70%;
+  font-size: clamp(24px, 7.4vw, 96px);
+}
+.cue--beat-final {
+  font-weight: 800;
+  font-stretch: 112%;
+  font-size: clamp(26px, 9.4vw, 150px);
+  letter-spacing: -0.015em;
+}
+
+/* ---------- 2D film: worlds ---------- */
+.flat__world {
+  position: absolute;
+  inset: 0;
+  visibility: hidden;
+}
+.flat[data-world='ch01'] .flat__world--ch01,
+.flat[data-world='ch02'] .flat__world--ch02 {
+  visibility: visible;
+}
+
+/* ---------- 2D film: Chapter 02 crowd ---------- */
+.flat {
+  --walk: 0;
+  --d: 0;
+  --rim: 0;
+  --h2: 0;
+}
+.crowd {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(120% 70% at 50% 100%, #15130f, #070707 60%);
+  transform: scale(calc(1 + var(--walk) * 0.35));
+  transform-origin: 50% 62%;
+}
+.fig {
+  --k: clamp(0, calc((var(--d) - var(--o)) / 0.35), 1);
+  fill: #6f6b64;
+}
+.fig use {
+  transition: opacity 0.2s linear;
+}
+.fig--dim use {
+  opacity: calc(1 - var(--k));
+}
+.fig--ghost use {
+  fill: #a29d93;
+  opacity: calc(1 - var(--k) * 0.86);
+}
+.fig--wire use {
+  fill-opacity: calc(1 - var(--k));
+  stroke: #8d887f;
+  stroke-width: 0.6;
+  stroke-dasharray: 2 1.5;
+  stroke-opacity: calc(0.15 + var(--k) * 0.5);
+}
+.fig--frag use {
+  opacity: calc(1 - var(--k));
+  stroke: #948f86;
+  stroke-width: 0.8;
+  stroke-dasharray: 3 5;
+  transform: translateY(calc(var(--k) * -6px));
+}
+.fig--solid use {
+  fill: color-mix(in srgb, #6f6b64, #ece7de calc(var(--d) * 100%));
+  filter: drop-shadow(0 0 calc(var(--rim) * 3px) rgba(165, 139, 255, calc(var(--rim) * 0.9)));
+}
+.fig__thread {
+  stroke: #ece7de;
+  stroke-width: 0.5;
+  fill: #7c776e;
+  opacity: calc(0.45 * (1 - var(--k)));
+}
+.fig--solid .fig__thread {
+  opacity: 0.7;
+  fill: #b8b2a7;
+}
+.flat__h2 {
+  position: absolute;
+  left: 50%;
+  top: 22vh;
+  transform: translateX(-50%);
+  font-family: var(--f-display);
+  font-weight: 800;
+  font-stretch: 112%;
+  font-size: clamp(36px, 7vw, 110px);
+  line-height: 0.88;
+  text-align: center;
+  text-transform: uppercase;
+  white-space: nowrap;
+  color: var(--bone);
+  opacity: var(--h2);
+}
+.flat--still .fig use,
+.flat--still .fig__thread,
+.flat--still .flat__h2 {
+  transition: opacity 0.9s ease, fill 0.9s ease;
+}
+
+/* Chapter 03: overheard lines, small and human, in the lower third. */
+.cue--moment,
+.cue--moment-2 {
+  align-self: end;
+  margin-bottom: 17vh;
+  font-family: var(--f-body);
+  font-style: italic;
+  font-weight: 300;
+  font-size: clamp(19px, 2.5vw, 36px);
+  line-height: 1.25;
+  text-transform: none;
+  letter-spacing: 0;
+}
+.cue--moment-2 {
+  margin-bottom: calc(17vh - 1.5em);
+  color: var(--stone-2);
+}
+.cue--stamp {
+  align-self: start;
+  margin-top: calc(env(safe-area-inset-top, 0px) + 18vh);
+  font-family: var(--f-mono);
+  font-weight: 500;
+  font-size: 12px;
+  letter-spacing: 0.24em;
+  color: var(--stone-2);
+  text-shadow: none;
+}
+
+/* ---------- 2D film: Chapter 03 tower and moments ---------- */
+.flat[data-world='ch03'] .flat__world--ch03 {
+  visibility: visible;
+}
+.flat {
+  --emerge: 0;
+  --approach: 0;
+  --inside: 0;
+  --m1: 0;
+  --m2: 0;
+  --m3: 0;
+  --m4: 0;
+}
+.tower {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  background: #10141b;
+  opacity: calc(1 - var(--inside));
+  transform: scale(calc(1 + var(--approach) * 4.5));
+  transform-origin: 46% 66%;
+}
+.tower__dark {
+  fill: #141920;
+}
+.tower__lit {
+  fill: #6b4a2a;
+  filter: drop-shadow(0 0 14px rgba(255, 197, 138, 0.55));
+}
+.tower__slab {
+  fill: #3a3731;
+}
+.tower__mullion {
+  stroke: #24221f;
+  stroke-width: 1.5;
+}
+.fogbank {
+  position: absolute;
+  inset: 0;
+  background: #1a1b1e;
+  opacity: calc(1 - var(--emerge));
+}
+.moments {
+  position: absolute;
+  inset: 0;
+  background: #070605;
+  opacity: var(--inside);
+}
+.moment {
+  position: absolute;
+  inset: 8vh 0 14vh;
+  width: 100%;
+  height: calc(100% - 22vh);
+}
+.moment--1 { opacity: var(--m1); }
+.moment--2 { opacity: var(--m2); }
+.moment--3 { opacity: var(--m3); }
+.moment--4 { opacity: var(--m4); }
+.m__pool {
+  fill: rgba(255, 197, 138, 0.13);
+  filter: blur(18px);
+}
+.moment--4 .m__pool {
+  opacity: 0.25;
+}
+.m__plinth {
+  fill: #2a2724;
+}
+.m__tablet {
+  fill: #e9e3d8;
+}
+.m__house,
+.m__model,
+.m__ask {
+  fill: #d6cfc2;
+}
+.m__house--fading {
+  fill-opacity: calc(1 - clamp(0, calc((var(--mt2) - 0.3) / 0.35), 1));
+  stroke: #a29d93;
+  stroke-width: 1.2;
+  stroke-dasharray: 4 3;
+}
+.m__flaw {
+  fill: rgba(255, 197, 138, 0.9);
+  filter: blur(4px);
+  opacity: clamp(0, calc((var(--mt1) - 0.35) / 0.3), 1);
+}
+.m__agent {
+  fill: #d9d2c5;
+}
+.m__other {
+  fill: #8f8a81;
+}
+.m__other--far {
+  fill: #6f7a86;
+}
+.m__lamp {
+  fill: rgba(255, 197, 138, 0.35);
+  filter: blur(22px);
+}
+.m__ask {
+  transform-box: fill-box;
+  transform-origin: bottom;
+  transform: scaleY(calc(1 + clamp(0, calc((var(--mt3) - 0.15) / 0.4), 1) * 1.3));
+}
+.m__shadow {
+  fill: rgba(0, 0, 0, 0.55);
+  transform-box: fill-box;
+  transform-origin: left;
+  transform: scaleX(calc(0.45 + clamp(0, calc((var(--mt3) - 0.15) / 0.4), 1) * 0.55));
+}
+.m__window {
+  fill: #1a2129;
+}
+.m__phone {
+  fill: rgba(255, 197, 138, 0.9);
+  filter: blur(5px);
+}
+.m__call {
+  stroke: #ece7de;
+  stroke-width: 1.4;
+  stroke-dasharray: 1;
+  stroke-dashoffset: calc(1 - clamp(0, calc((var(--mt4) - 0.2) / 0.4), 1));
+}
+.flat--still .moment,
+.flat--still .tower,
+.flat--still .moments,
+.flat--still .fogbank {
+  transition: opacity 0.9s ease;
+}
+
+/* Chapter 04: the four lines stack as the pieces land, upper left, clear of the structure. */
+.cue[class*='cue--stack-'] {
+  align-self: start;
+  justify-self: start;
+  margin-left: max(16px, 6vw);
+  margin-top: calc(env(safe-area-inset-top, 0px) + 12vh + var(--row) * 0.9em);
+  text-align: left;
+  font-weight: 800;
+  font-stretch: 112%;
+  font-size: clamp(30px, 6.2vw, 104px);
+  line-height: 0.9;
+  letter-spacing: -0.015em;
+  transform-origin: left center;
+}
+.cue--stack-1 { --row: 0; }
+.cue--stack-2 { --row: 1; }
+.cue--stack-3 { --row: 2; }
+.cue--stack-4 { --row: 3; }
+
+/* ---------- 2D film: Chapter 04 glass ---------- */
+.flat[data-world='ch04'] .flat__world--ch04 {
+  visibility: visible;
+  background: #060606;
+}
+.flat {
+  --white: 0;
+  --orbit: 0;
+}
+.whiteout {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  pointer-events: none;
+  background: radial-gradient(closest-side, #fff4e6, #ffc58a 55%, rgba(255, 197, 138, 0));
+  transform: scale(calc(0.3 + var(--white) * 2.4));
+  opacity: var(--white);
+}
+.glass {
+  position: absolute;
+  /* Beside the lines in Chapter 04; centre stage, above its name, in Chapter 05. */
+  top: 8vh;
+  left: calc(44vw - var(--stone) * 26vw);
+  width: calc(52vw + var(--stone) * 12vw);
+  height: calc(84vh - var(--stone) * 16vh);
+  overflow: visible;
+  /* A slow turn, standing in for the 3D orbit. */
+  transform: perspective(900px) rotateY(calc(var(--orbit) * 38deg)) scale(calc((1 - var(--quiet) * 0.14) * (1 + var(--push) * 7)));
+  /* The keystone, so the Chapter 07 push closes in on it. */
+  transform-origin: 50% 22%;
+  filter: brightness(calc(1 - var(--dim7) * 0.62));
+}
+.glass__piece {
+  opacity: var(--g);
+  transform-box: view-box;
+  /* Floating offset in Chapter 04, eased to nothing in Chapter 05. */
+  transform: translate(calc(var(--tx) * (1 - var(--a)) * 1px), calc(var(--ty) * (1 - var(--a)) * 1px))
+    rotate(calc(var(--rot) * (1 - var(--a)) * 1deg)) scale(calc(0.7 + var(--g) * 0.3));
+  filter: drop-shadow(0 calc(var(--flash) * 3px) calc(var(--flash) * 10px) rgba(122, 69, 255, calc(var(--flash) * 1)));
+}
+.glass__glass {
+  fill: rgba(236, 231, 222, 0.06);
+  stroke: rgba(236, 231, 222, 0.55);
+  stroke-width: 0.8;
+  opacity: calc(1 - var(--stone));
+}
+.glass__stone {
+  fill: #d8d2c6;
+  stroke: #0c0b0a;
+  stroke-width: 0.8;
+  opacity: var(--stone);
+}
+.glass__piece--g0 .glass__stone { fill: #57534d; }
+.glass__piece--g1 .glass__stone,
+.glass__piece--g2 .glass__stone { fill: #c4bdb1; }
+.glass__piece--g4 .glass__stone {
+  fill: #e9e4da;
+  opacity: var(--keyin);
+}
+.glass__ember {
+  fill: #ffc58a;
+  filter: blur(2.5px);
+  opacity: calc(1 - var(--stone));
+}
+.flat {
+  --stone: 0;
+  --keyin: 0;
+}
+@media (max-width: 767px) {
+  .glass {
+    top: calc(34vh - var(--stone) * 14vh);
+    left: 4vw;
+    width: 92vw;
+    height: 56vh;
+  }
+}
+.flat--still .glass__piece,
+.flat--still .whiteout {
+  transition: opacity 0.9s ease;
+}
+
+/* Chapter 05: the qualities, named as they lock, in a quiet column lower left. */
+.cue[class*='cue--lock-'] {
+  align-self: end;
+  justify-self: start;
+  margin-left: max(16px, 6vw);
+  margin-bottom: calc(env(safe-area-inset-bottom, 0px) + 12vh + (4 - var(--row)) * 2.2em);
+  font-family: var(--f-mono);
+  font-weight: 500;
+  font-size: clamp(12px, 1.1vw, 15px);
+  letter-spacing: 0.26em;
+  text-align: left;
+  text-shadow: none;
+  transform-origin: left center;
+}
+.cue[class*='cue--lock-']::before {
+  content: '';
+  display: inline-block;
+  width: 1.6em;
+  height: 1px;
+  margin-right: 0.9em;
+  vertical-align: middle;
+  background: currentColor;
+  opacity: 0.6;
+}
+.cue--lock-0 { --row: 0; }
+.cue--lock-1 { --row: 1; }
+.cue--lock-2 { --row: 2; }
+.cue--lock-3 { --row: 3; }
+/* The last one is the only purple word in the film until the lockup. */
+.cue--lock-4 { --row: 4; color: var(--purple-lit); }
+.cue--title {
+  align-self: end;
+  margin-bottom: calc(env(safe-area-inset-bottom, 0px) + 10vh);
+  font-weight: 800;
+  font-stretch: 118%;
+  font-size: clamp(34px, 8.4vw, 140px);
+  letter-spacing: -0.01em;
+  line-height: 0.9;
+}
+
+/*
+ * Chapter 06: one story at a time, always in the same place just below the
+ * badge, at full bone-white, so nobody has to hunt for it.
+ */
+.cue--story {
+  align-self: end;
+  margin-bottom: calc(env(safe-area-inset-bottom, 0px) + 19vh);
+  max-width: min(34ch, 86vw);
+  font-family: var(--f-body);
+  font-style: italic;
+  font-weight: 400;
+  font-size: clamp(21px, 2.3vw, 34px);
+  line-height: 1.3;
+  text-transform: none;
+  letter-spacing: 0;
+  color: var(--bone);
+  text-shadow: 0 0 24px rgba(0, 0, 0, 0.95), 0 0 6px rgba(0, 0, 0, 0.8);
+}
+.cue--tag {
+  align-self: start;
+  justify-self: end;
+  margin: calc(env(safe-area-inset-top, 0px) + 20px) 56px 0 0;
+  padding: 0.35em 0.7em;
+  font-family: var(--f-mono);
+  font-weight: 500;
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  color: var(--void);
+  background: var(--stone-2);
+  text-shadow: none;
+}
+@media (max-width: 767px) {
+  /* Below the brand mark, not on top of it. */
+  .cue.cue--tag {
+    justify-self: center;
+    margin: calc(env(safe-area-inset-top, 0px) + 50px) 0 0;
+  }
+}
+.cue--statement {
+  align-self: end;
+  margin-bottom: calc(env(safe-area-inset-bottom, 0px) + 9vh);
+  font-weight: 800;
+  font-stretch: 112%;
+  font-size: clamp(28px, 5.8vw, 92px);
+  line-height: 0.92;
+  letter-spacing: -0.012em;
+  max-width: 14ch;
+}
+
+/* ---------- 2D film: Chapter 06 quiet ---------- */
+.flat {
+  --quiet: 0;
+  --field: 0;
+}
+.stories-bg {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  opacity: calc(var(--field) * 0.16);
+  filter: blur(0.8px);
+}
+.stories-bg span {
+  position: absolute;
+  white-space: nowrap;
+  /* Fragments, not sentences: each fades out before it can cross the centre. */
+  max-width: 34vw;
+  overflow: hidden;
+  -webkit-mask-image: linear-gradient(90deg, #000 60%, transparent);
+  mask-image: linear-gradient(90deg, #000 60%, transparent);
+  font: italic 300 14px/1 var(--f-body);
+  color: var(--bone);
+  opacity: 0.6;
+}
+.overhead {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(40% 60% at 50% 0%, rgba(255, 242, 226, 0.12), transparent 70%);
+  opacity: var(--quiet);
+}
+
+.flat {
+  --push: 0;
+  --dim7: 0;
+}
+
+/* Chapter 07: the final statement, centred, one line at a time. */
+.cue--final {
+  font-weight: 800;
+  font-stretch: 112%;
+  font-size: clamp(32px, 6.4vw, 108px);
+  line-height: 0.9;
+  letter-spacing: -0.015em;
+  max-width: 12ch;
+}
+
+/* ---------- the lockup: the film's final screen ---------- */
+.lockup {
+  --lk-ground: 0;
+  --lk-scale: 24;
+  --lk-mark: 0;
+  --lk-stones: 0;
+  --lk-title: 0;
+  --lk-recognised: 0;
+  --lk-sub: 0;
+  --lk-ctas: 0;
+  position: fixed;
+  inset: 0;
+  z-index: 12;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  visibility: hidden;
+  pointer-events: none;
+  outline: none;
+}
+.lockup--live .lockup__ctas {
+  pointer-events: auto;
+}
+.lockup__ground {
+  position: absolute;
+  inset: 0;
+  background: var(--void);
+  opacity: var(--lk-ground);
+}
+.lockup__col {
+  position: relative;
+  display: grid;
+  justify-items: center;
+  gap: 14px;
+  padding-inline: 20px;
+  text-align: center;
+}
+.lockup__mark {
+  width: min(20vh, 34vw);
+  height: auto;
+  aspect-ratio: 280 / 270;
+  overflow: visible;
+  margin-bottom: 10px;
+  opacity: var(--lk-mark);
+  transform: scale(var(--lk-scale));
+}
+.lockup__stones {
+  opacity: var(--lk-stones);
+}
+.lockup__stones path {
+  fill: #d8d2c6;
+  stroke: var(--void);
+  stroke-width: 1.4;
+  stroke-linejoin: round;
+}
+.lockup__stones path:first-child {
+  fill: #57534d;
+}
+.lockup__key {
+  fill: var(--purple);
+  stroke: var(--void);
+  stroke-width: 1.4;
+}
+.lockup__title {
+  margin: 0;
+  font-family: var(--f-display);
+  font-weight: 800;
+  font-stretch: 118%;
+  font-size: clamp(34px, 6vw, 96px);
+  line-height: 0.9;
+  letter-spacing: -0.01em;
+  text-transform: uppercase;
+  opacity: var(--lk-title);
+  transform: translateY(calc((1 - var(--lk-title)) * 14px));
+}
+.lockup__recognised {
+  margin: 0;
+  font: 500 clamp(11px, 1vw, 13px) / 1.4 var(--f-mono);
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--stone-2);
+  opacity: var(--lk-recognised);
+}
+.lockup__sub {
+  margin: 10px 0 0;
+  font: 400 clamp(17px, 1.5vw, 21px) / 1.45 var(--f-body);
+  color: var(--stone-2);
+  opacity: var(--lk-sub);
+}
+.lockup__ctas {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 18px;
+  opacity: var(--lk-ctas);
+  transform: translateY(calc((1 - var(--lk-ctas)) * 10px));
+}
+.cta {
+  display: inline-block;
+  padding: 16px 24px;
+  font: 500 12px/1 var(--f-mono);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  text-decoration: none;
+  transition: background-color 0.25s ease, border-color 0.25s ease, color 0.25s ease;
+}
+.cta--primary {
+  color: #fff;
+  background: var(--purple);
+}
+.cta--primary:hover {
+  background: #6c32ee;
+}
+.cta--secondary {
+  color: var(--bone);
+  border: 1px solid rgba(236, 231, 222, 0.4);
+}
+.cta--secondary:hover {
+  border-color: var(--bone);
+}
+@media (max-width: 767px) {
+  .lockup__ctas {
+    flex-direction: column;
+    align-items: stretch;
+    width: min(320px, 86vw);
+  }
+  .cta {
+    text-align: center;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .cta {
+    transition: none;
+  }
+}
