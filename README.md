@@ -24,8 +24,9 @@ Useful query parameters:
 - `src/three/` the 3D stage, camera rig and chapter worlds
 - `src/flat/` the 2D version of the film
 - `src/ui/` captions, chrome and the final lockup
-- `src/sound/` the optional background music: the score as data, and the engine
+- `src/sound/` the optional music: the score as data, the engine, and the sampler that plays the recordings in `public/sound/`
 - `src/proof/` the "What makes an agent trusted?" section after the film
+- `scripts/build-samples.py` rebuilds the music's samples from the VSCO 2 CE and VCSL libraries (CC0)
 - `scripts/share-assets.py` regenerates the favicon and link-preview image from the badge geometry
 - `storyboard/` the approved Phase 1 storyboard
 
@@ -40,7 +41,7 @@ Placeholders that need real inputs:
 - **Wordmark.** "Housing.com" is set in text; add the real logo files.
 - **"What makes an agent trusted?" wording.** Marked as a draft on screen; the product team must confirm the five dimensions and how they're described.
 - **Lockup buttons.** Removed for now; their copy is kept in `copy.ts`. If they return, they need to sit outside the scroll path so they don't block scrolling.
-- **Music.** Generated live; a composed or licensed score can replace it using the same cues in `src/sound/score.ts`.
+- **Music.** Played from public-domain recordings (VSCO 2 CE and VCSL, CC0, no credit required). Tabla, acoustic guitar and tanpura aren't available as clean CC0 sets without an account; frame drum, darbuka, plucked cellos and a held bass stand in. Real recordings of those can be added as new sample groups.
 - **Share URL.** The link-preview tags in `index.html` point at the GitHub Pages address; update them if the site moves.
 
 Archivo is licensed under the SIL Open Font License (`public/fonts/OFL.txt`).

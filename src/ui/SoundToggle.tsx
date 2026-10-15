@@ -31,8 +31,8 @@ export function SoundToggle() {
     if (!on) return
     let raf = 0
     const tick = () => {
-      const { p, v, beyond } = useFilm.getState()
-      engine.current?.update(p, v, beyond)
+      const { p, beyond } = useFilm.getState()
+      engine.current?.update(p, beyond)
       raf = requestAnimationFrame(tick)
     }
     raf = requestAnimationFrame(tick)
@@ -56,7 +56,8 @@ export function SoundToggle() {
       // Unlock audio now, inside the click; then load the engine (only on first use).
       const ctx = unlockAudio()
       const { SoundEngine } = await import('../sound/engine')
-      engine.current = new SoundEngine(ctx)
+      // Recordings load in the background, the opening's instruments first.
+      engine.current = new SoundEngine(ctx, (id) => fetch(`${import.meta.env.BASE_URL}sound/${id}.m4a`).then((r) => r.arrayBuffer()))
       // Review hook (?debug): inspect levels and cues without listening.
       if (new URLSearchParams(location.search).has('debug')) (window as unknown as { __sound?: SoundEngine }).__sound = engine.current
     }

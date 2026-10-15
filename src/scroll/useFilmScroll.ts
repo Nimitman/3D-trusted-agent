@@ -22,7 +22,8 @@ export function useFilmScroll() {
       // The film runs over the spacer's length; anything after it is ordinary page.
       const film = filmScrollLength(limit)
       const p = film > 0 ? clamp(scroll / film) * BUILT_UNTIL : 0
-      const beyond = Math.max(0, scroll - film) / innerHeight
+      // A hidden or collapsed window can report zero height.
+      const beyond = Math.max(0, scroll - film) / Math.max(1, innerHeight)
       if (beyond !== useFilm.getState().beyond) useFilm.setState({ beyond })
       useFilm.setState({ p, v: clamp(velocity / 60, -1, 1) })
     }

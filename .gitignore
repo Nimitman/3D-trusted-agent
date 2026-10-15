@@ -4,3 +4,4 @@ dist/
 *.log
 # Local preview config for the Claude desktop app
 .claude/
+preview/

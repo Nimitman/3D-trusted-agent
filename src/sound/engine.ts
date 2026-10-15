@@ -1,378 +1,323 @@
-import { arrangementAt, BEAT, CHORD_BEATS, CUES, PROGRESSIONS, type Arrangement, type Cue } from './score'
+import { seeded } from '../lib/math'
+import { arrangementAt, BEAT, CUES, EIGHTHS_PER_CHORD, LAYERS, MOTIF, PROGRESSIONS, type Arrangement, type Cue, type Layer } from './score'
+import { Sampler, type Fetcher, type Voice } from './sampler'
+import type { Sample, SampleGroup } from './samples'
 
 /**
- * The film's background music, generated live with Web Audio and scheduled on
- * the audio clock. A chord progression plays continuously in real time; scroll
- * position decides the arrangement (which layers are in, minor or major) and
- * fires musical hits at the key transitions. No files, no licensing.
+ * The film's music, played from recordings of real instruments (VSCO 2 CE and
+ * VCSL, public domain) and scheduled on the audio clock. The motif and chords
+ * run in real time; scroll position decides which layers play, turns the music
+ * to major when the keystone seats, and fires hits at the key transitions.
  *
- *   pad     low strings: detuned saws through a soft lowpass, slow swells
- *   pulse   a low eighth-note ostinato on the chord root
- *   piano   sparse felt-piano notes from the chord
- *   high    high strings on the top of the voicing, with gentle vibrato
- *   hits    risers, swells, piano ripples, booms and stabs, into a long reverb
+ * The clock is explicit (`tick(now)`, `update(..., now)`), so the same engine
+ * can render offline for a preview, without a browser.
  */
 
-const mtof = (m: number) => 440 * Math.pow(2, (m - 69) / 12)
 /** How far ahead notes are booked, in seconds. */
-const LOOKAHEAD = 0.25
+const LOOKAHEAD = 0.3
+const EIGHTH = BEAT / 2
+/** Master level: the full mix sits around -16 dB RMS, peaks clear of the clipper. */
+const OUTPUT = 1
 
-type Held = { stop: (at: number, release: number) => void }
+/** Each layer's level at full strength, balanced against the others. */
+const LEVEL: Record<Layer | 'hits', number> = {
+  drone: 0.4,
+  hero: 0.85,
+  double: 0.42,
+  hands: 0.55,
+  pizz: 0.42,
+  jazz: 0.3,
+  viola: 0.3,
+  violin: 0.26,
+  horn: 0.3,
+  timp: 0.5,
+  big: 0.62,
+  hits: 0.75,
+}
+
+/** How much of each layer goes to the hall. */
+const SEND: Record<Layer | 'hits', number> = {
+  drone: 0.4,
+  hero: 0.55,
+  double: 0.6,
+  hands: 0.25,
+  pizz: 0.35,
+  jazz: 0.5,
+  viola: 0.5,
+  violin: 0.6,
+  horn: 0.5,
+  timp: 0.4,
+  big: 0.35,
+  hits: 0.6,
+}
+
+/** What the opening needs first; the rest loads behind it. */
+const FIRST: SampleGroup[] = ['cello', 'bass', 'cresc']
+const REST: SampleGroup[] = ['frame', 'darbuka', 'pizz', 'bassPizz', 'vibes', 'hat', 'shaker', 'viola', 'violin', 'horn', 'timp', 'kick', 'gong', 'cymbal']
+
+const lowDrum = (s: Sample) => s.drum === 'low' && !s.muted
+const timpStroke = (s: Sample) => !s.roll
 
 export class SoundEngine {
-  readonly ctx: AudioContext
+  readonly ctx: BaseAudioContext
+  /** Resolves once every sample has loaded (or failed to). */
+  readonly ready: Promise<void>
   private out: GainNode
   private reverb: ConvolverNode
-  private bus: Record<'pad' | 'pulse' | 'piano' | 'high' | 'hits', GainNode>
-  private padTone: BiquadFilterNode
-  private noise: AudioBuffer
+  private bus = {} as Record<Layer | 'hits', GainNode>
+  private levels = {} as Record<Layer | 'hits', number>
+  private sampler: Sampler
+  private rand = seeded(7)
 
   private mix: Arrangement = arrangementAt(0)
-  private chordIndex = -1
   private mode: 'minor' | 'major' = 'minor'
-  private nextBeat = 0
-  private beat = 0
-  private held: Held[] = []
+  private chordIndex = -1
+  private eighth = 0
+  private nextTime = 0
+  private pads: Voice[] = []
+  private drone: Voice[] = []
+  private running = false
   private timer = 0
   private lastP = -1
 
   /** Takes a context created and unlocked inside the user's click (see SoundToggle). */
-  constructor(ctx: AudioContext) {
+  constructor(ctx: BaseAudioContext, fetch: Fetcher) {
     this.ctx = ctx
-    const limiter = ctx.createDynamicsCompressor()
-    limiter.threshold.value = -10
-    limiter.ratio.value = 6
-    limiter.attack.value = 0.01
+    this.sampler = new Sampler(ctx)
+    // A soft clipper as the safety limit: transparent below about -6 dB, and the
+    // same in every engine (a compressor's automatic make-up gain is not).
+    const limiter = ctx.createWaveShaper()
+    const curve = new Float32Array(2048)
+    for (let i = 0; i < curve.length; i++) {
+      const x = (i / (curve.length - 1)) * 2 - 1
+      curve[i] = Math.abs(x) < 0.5 ? x : Math.sign(x) * (0.5 + 0.5 * Math.tanh((Math.abs(x) - 0.5) / 0.5))
+    }
+    limiter.curve = curve
+    limiter.oversample = '2x'
     this.out = ctx.createGain()
     this.out.gain.value = 0
     this.out.connect(limiter).connect(ctx.destination)
 
-    // A long, dark hall: what makes it feel cinematic rather than synthetic.
+    // The recordings carry their own room; a long hall around them makes it cinematic.
     this.reverb = ctx.createConvolver()
-    this.reverb.buffer = this.hall(4.8)
+    this.reverb.buffer = this.hall(4.2)
     const wet = ctx.createGain()
-    wet.gain.value = 0.5
+    wet.gain.value = 0.32
     this.reverb.connect(wet).connect(this.out)
 
-    const bus = (dry: number, send: number) => {
+    for (const name of [...LAYERS, 'hits'] as const) {
       const g = ctx.createGain()
       g.gain.value = 0
-      const d = ctx.createGain()
-      d.gain.value = dry
-      const s = ctx.createGain()
-      s.gain.value = send
-      g.connect(d).connect(this.out)
-      g.connect(s).connect(this.reverb)
-      return g
+      g.connect(this.out)
+      const send = ctx.createGain()
+      send.gain.value = SEND[name]
+      g.connect(send).connect(this.reverb)
+      this.bus[name] = g
+      this.levels[name] = 0
     }
-    this.padTone = ctx.createBiquadFilter()
-    this.padTone.type = 'lowpass'
-    this.padTone.frequency.value = 900
-    this.padTone.Q.value = 0.4
-    this.bus = {
-      pad: bus(0.7, 0.6),
-      pulse: bus(0.85, 0.25),
-      piano: bus(0.6, 0.75),
-      high: bus(0.5, 0.8),
-      hits: bus(0.7, 0.7),
-    }
-    this.padTone.connect(this.bus.pad)
-    this.noise = this.whiteNoise(3)
+
+    this.ready = this.sampler.load(FIRST, fetch).then(() => this.sampler.load(REST, fetch))
   }
 
-  /** Fade the whole layer in or out, and start or stop the clock. */
-  setOn(on: boolean) {
-    const now = this.ctx.currentTime
+  /** Fade the music in or out, and start or stop the clock (in the browser). */
+  setOn(on: boolean, now = this.ctx.currentTime) {
     this.out.gain.cancelScheduledValues(now)
-    this.out.gain.setTargetAtTime(on ? 0.55 : 0, now, on ? 0.8 : 0.3)
-    if (on && !this.timer) {
-      this.nextBeat = now + 0.1
-      this.timer = window.setInterval(() => this.schedule(), 60)
-    } else if (!on && this.timer) {
-      clearInterval(this.timer)
+    this.out.gain.setTargetAtTime(on ? OUTPUT : 0, now, on ? 0.8 : 0.3)
+    if (on && !this.running) {
+      this.running = true
+      this.nextTime = now + 0.1
+      if (typeof window !== 'undefined') this.timer = window.setInterval(() => this.tick(this.ctx.currentTime), 50)
+    } else if (!on && this.running) {
+      this.running = false
+      if (this.timer) clearInterval(this.timer)
       this.timer = 0
     }
   }
 
-  /** Called every frame with film progress, scroll speed and how far past the film we are. */
-  update(p: number, velocity: number, beyond: number) {
-    const now = this.ctx.currentTime
+  /** Every frame: film progress and how far past the film the page is. */
+  update(p: number, beyond: number, now = this.ctx.currentTime) {
+    if (!Number.isFinite(p)) p = this.lastP < 0 ? 0 : this.lastP
+    if (!Number.isFinite(beyond)) beyond = 0
     this.mix = arrangementAt(p)
-    const after = 1 - Math.min(1, beyond * 1.5)
-    const level = this.mix.master * after
-    const set = (g: GainNode, v: number, tc = 0.6) => g.gain.setTargetAtTime(v * level, now, tc)
-    set(this.bus.pad, 0.42 * this.mix.pad, 0.9)
-    set(this.bus.pulse, 0.5 * this.mix.pulse, 0.5)
-    set(this.bus.piano, 0.55 * this.mix.piano, 0.6)
-    set(this.bus.high, 0.3 * this.mix.high, 1.2)
-    // Hits keep their own dynamics, but respect the silence and the page after the film.
-    this.bus.hits.gain.setTargetAtTime(level, now, 0.2)
-    // The pad brightens as the story builds, and a little with scroll speed.
-    const bright = 700 + this.mix.high * 1400 + Math.min(1, Math.abs(velocity)) * 500
-    this.padTone.frequency.setTargetAtTime(bright, now, 0.8)
+    const level = this.mix.master * (1 - Math.min(1, beyond * 1.5))
+    // Only move a layer's level when it changes, rather than queueing a ramp every frame.
+    const set = (name: Layer | 'hits', value: number, tc: number) => {
+      if (Math.abs(value - this.levels[name]) < 0.002) return
+      this.levels[name] = value
+      this.bus[name].gain.setTargetAtTime(value, now, tc)
+    }
+    for (const name of LAYERS) set(name, LEVEL[name] * this.mix[name] * level, name === 'big' ? 0.15 : 0.5)
+    set('hits', LEVEL.hits * level, 0.15)
 
-    // The release: as the keystone seats, change to major at once, not at the next bar.
+    // The release: change to major at once, from the top of the progression and the motif.
     if (this.mix.mode !== this.mode) {
       this.mode = this.mix.mode
-      this.changeChord(now + 0.05, 0)
+      this.chordIndex = Math.ceil((this.chordIndex + 1) / 4) * 4 - 1
+      this.eighth = 0
+      this.nextTime = now + 0.04
     }
 
     // Hits fire only when passing their moment forwards, and not on a big jump.
     if (this.lastP >= 0 && p > this.lastP && p - this.lastP < 0.02) {
-      for (const cue of CUES) if (cue.p > this.lastP && cue.p <= p) this.hit(cue)
+      for (const cue of CUES) if (cue.p > this.lastP && cue.p <= p) this.hit(cue, now + 0.02)
     }
     this.lastP = p
   }
 
-  // ---------- the clock ----------
-
-  private schedule() {
-    if (this.ctx.state !== 'running') return
-    const horizon = this.ctx.currentTime + LOOKAHEAD
-    while (this.nextBeat < horizon) {
-      this.onBeat(this.nextBeat, this.beat)
-      this.nextBeat += BEAT / 2 // eighth notes
-      this.beat++
+  /** Books every note due before now + LOOKAHEAD. */
+  tick(now: number) {
+    if (!this.running) return
+    if (!this.drone.length && this.sampler.has('bass')) {
+      // A low D and A, held for as long as the music plays.
+      this.drone = [38, 45].map((midi) => this.sampler.play({ group: 'bass', midi, t: now + 0.05, out: this.bus.drone, attack: 2.5 }))
     }
+    if (this.nextTime < now) this.nextTime = now + 0.02
+    while (this.nextTime < now + LOOKAHEAD) {
+      this.onEighth(this.nextTime, this.eighth)
+      this.nextTime += EIGHTH
+      this.eighth++
+    }
+  }
+
+  // ---------- the arrangement, one eighth note at a time ----------
+
+  private index() {
+    return ((this.chordIndex % 4) + 4) % 4
   }
 
   private chord() {
-    const prog = PROGRESSIONS[this.mode]
-    return prog[((this.chordIndex % prog.length) + prog.length) % prog.length]
+    return PROGRESSIONS[this.mode][this.index()]
   }
 
-  /** Every eighth note: chord changes, the pulse, and the piano's sparse pattern. */
-  private onBeat(t: number, eighth: number) {
-    const inChord = eighth % (CHORD_BEATS * 2)
-    if (inChord === 0) this.changeChord(t, 1)
-    const chord = this.chord()
+  private onEighth(t: number, e: number) {
+    const inChord = e % EIGHTHS_PER_CHORD
+    const inBar = e % 8
+    const bar = Math.floor(e / 8)
+    if (inChord === 0) this.changeChord(t)
+    const c = this.chord()
+    const m = this.mix
+    const play = this.sampler.play.bind(this.sampler)
+    const human = () => (this.rand() - 0.5) * 0.012
+    const vary = (g: number) => g * (0.88 + this.rand() * 0.24)
+    const on = (layer: Layer) => m[layer] > 0.01
 
-    // Pulse: steady eighths on the root, an octave up, accented on each beat.
-    if (this.mix.pulse > 0.01) this.pluck(t, mtof(chord[0] + 12), eighth % 2 === 0 ? 1 : 0.6)
+    // The hero: cellos playing the motif, the louder take once the film has built.
+    for (const [start, midi, len] of MOTIF[this.mode][this.index()]) {
+      if (start !== inChord) continue
+      const dur = len * EIGHTH + 0.3
+      play({ group: 'cello', midi, vel: m.hero > 0.85 ? 3 : 1, t, dur, attack: 0.08, release: 1, out: this.bus.hero })
+      if (on('double')) play({ group: 'violin', midi: midi + 12, vel: 2, t, dur, attack: 0.12, release: 1.2, out: this.bus.double })
+    }
 
-    // Piano: a few notes per chord, rising through the voicing, never busy.
-    const pattern: Record<number, number> = { 0: 2, 3: 3, 6: 4, 10: 3, 13: 4 }
-    if (this.mix.piano > 0.01 && inChord in pattern) {
-      const note = chord[pattern[inChord]] + 12
-      this.piano(t, mtof(note), inChord === 0 ? 0.9 : 0.6)
+    // Hand drums: a keherwa-like eight, with a push on every second bar.
+    if (on('hands')) {
+      const low = (muted: boolean) => (s: Sample) => s.drum === 'low' && !!s.muted === muted
+      const high = (s: Sample) => s.drum === 'high' && !s.muted
+      const pattern: [SampleGroup, number, ((s: Sample) => boolean)?][] = [
+        ['frame', 1, low(false)],
+        ['darbuka', 0.35],
+        ['frame', 0.6, high],
+        bar % 2 ? ['frame', 0.6, low(false)] : ['darbuka', 0.45],
+        ['frame', 0.7, low(true)],
+        ['darbuka', 0.35],
+        ['frame', 0.75, high],
+        ['darbuka', 0.5],
+      ]
+      const [group, g, only] = pattern[inBar]
+      play({ group, t: t + human(), gain: vary(g), out: this.bus.hands, only })
+      if (inBar === 7 && m.hands > 0.6) play({ group: 'darbuka', t: t + EIGHTH / 2 + human(), gain: vary(0.25), out: this.bus.hands })
+    }
+
+    // Plucked strings: cellos picking through the chord like a guitar, a bass on beats one and three.
+    if (on('pizz')) {
+      const tones = [c[2], c[4], c[3], c[2] + 12]
+      const pick = [0, 1, 2, 1, 3, 1, 2, 1][inBar]
+      play({ group: 'pizz', midi: tones[pick], vel: inBar === 0 ? 2 : 1, t: t + human(), gain: vary(inBar % 2 ? 0.7 : 1), out: this.bus.pizz })
+      if (inBar === 0 || inBar === 4) play({ group: 'bassPizz', midi: inBar === 0 ? c[0] : c[1], t, gain: vary(1), out: this.bus.pizz })
+    }
+
+    // Jazz colour: vibraphone chords with an added ninth, hi-hat on two and four, a shaker.
+    if (on('jazz')) {
+      const ninth = ((c[0] + 2) % 12) + 72
+      if (inChord === 0) [c[2] + 12, c[3] + 12, c[4] + 12, ninth].forEach((n, i) => play({ group: 'vibes', midi: n, t: t + i * 0.045, gain: vary(0.55), out: this.bus.jazz }))
+      if (inChord === 10) [c[3] + 12, ninth].forEach((n, i) => play({ group: 'vibes', midi: n, t: t + i * 0.06, gain: vary(0.4), out: this.bus.jazz }))
+      if (inBar === 2 || inBar === 6) play({ group: 'hat', t: t + human(), gain: vary(0.6), out: this.bus.jazz })
+      if (inBar % 2 === 1) play({ group: 'shaker', t: t + human(), gain: vary(0.35), out: this.bus.jazz })
+    }
+
+    // Timpani: a roll swelling into each new chord, and a stroke on its downbeat.
+    if (on('timp')) {
+      const next = PROGRESSIONS[this.mode][(this.index() + 1) % 4]
+      if (inChord === 12) play({ group: 'timp', midi: drum(next[0]), t, dur: 4 * EIGHTH, attack: 4 * EIGHTH, release: 0.15, gain: 0.8, out: this.bus.timp, only: (s) => !!s.roll })
+      if (inChord === 0) play({ group: 'timp', midi: drum(c[0]), t, gain: vary(0.9), out: this.bus.timp, only: timpStroke })
+    }
+
+    // The release: big drums on the downbeats.
+    if (on('big')) {
+      if (inBar === 0 || inBar === 4) play({ group: 'kick', vel: inChord === 0 ? 7 : 5, t, gain: vary(1), out: this.bus.big })
+      if (inBar === 0 || inBar === 3 || inBar === 6) play({ group: 'frame', t: t + human(), gain: vary(0.9), out: this.bus.big, only: lowDrum })
+      if (inChord === 0 || inChord === 8) play({ group: 'timp', midi: drum(c[0]), vel: 4, t, gain: 1, out: this.bus.big, only: timpStroke })
     }
   }
 
-  /** Move to the next chord: the old one swells away as the new one swells in. */
-  private changeChord(t: number, step: number) {
-    this.chordIndex += step
-    const chord = this.chord()
-    for (const h of this.held) h.stop(t, 2.6)
-    this.held = []
-    for (const m of chord) this.held.push(this.padNote(t, mtof(m)))
-    for (const m of chord.slice(-2)) this.held.push(this.highNote(t, mtof(m + 12)))
-  }
-
-  // ---------- instruments ----------
-
-  /** Low strings: two detuned saws and a sine, slow attack, long release. */
-  private padNote(t: number, f: number): Held {
-    const g = this.ctx.createGain()
-    g.gain.setValueAtTime(0, t)
-    g.gain.linearRampToValueAtTime(0.06, t + 2.2)
-    g.connect(this.padTone)
-    const oscs = [
-      { type: 'sawtooth' as OscillatorType, detune: -8 },
-      { type: 'sawtooth' as OscillatorType, detune: 7 },
-      { type: 'sine' as OscillatorType, detune: 0 },
-    ].map(({ type, detune }) => {
-      const o = this.ctx.createOscillator()
-      o.type = type
-      o.frequency.value = f
-      o.detune.value = detune
-      o.connect(g)
-      o.start(t)
-      return o
-    })
-    return {
-      stop: (at, release) => {
-        g.gain.cancelScheduledValues(at)
-        g.gain.setTargetAtTime(0, at, release / 4)
-        oscs.forEach((o) => o.stop(at + release * 1.5))
-      },
-    }
-  }
-
-  /** High strings: a saw ensemble with slow vibrato, swelling in. */
-  private highNote(t: number, f: number): Held {
-    const g = this.ctx.createGain()
-    g.gain.setValueAtTime(0, t)
-    g.gain.linearRampToValueAtTime(0.045, t + 3)
-    const lp = this.ctx.createBiquadFilter()
-    lp.type = 'lowpass'
-    lp.frequency.value = 3200
-    g.connect(lp).connect(this.bus.high)
-    const vibrato = this.ctx.createOscillator()
-    vibrato.frequency.value = 4.6
-    const depth = this.ctx.createGain()
-    depth.gain.value = 6
-    vibrato.connect(depth)
-    vibrato.start(t)
-    const oscs = [-10, 0, 9].map((detune) => {
-      const o = this.ctx.createOscillator()
-      o.type = 'sawtooth'
-      o.frequency.value = f
-      o.detune.value = detune
-      depth.connect(o.detune)
-      o.connect(g)
-      o.start(t)
-      return o
-    })
-    return {
-      stop: (at, release) => {
-        g.gain.cancelScheduledValues(at)
-        g.gain.setTargetAtTime(0, at, release / 3)
-        ;[...oscs, vibrato].forEach((o) => o.stop(at + release * 1.8))
-      },
-    }
-  }
-
-  /** The pulse: a soft low pluck whose brightness falls away quickly. */
-  private pluck(t: number, f: number, accent: number) {
-    const o = this.ctx.createOscillator()
-    o.type = 'triangle'
-    o.frequency.value = f
-    const lp = this.ctx.createBiquadFilter()
-    lp.type = 'lowpass'
-    lp.frequency.setValueAtTime(1600, t)
-    lp.frequency.exponentialRampToValueAtTime(220, t + 0.25)
-    const g = this.ctx.createGain()
-    g.gain.setValueAtTime(0.0001, t)
-    g.gain.exponentialRampToValueAtTime(0.28 * accent, t + 0.008)
-    g.gain.exponentialRampToValueAtTime(0.0001, t + 0.38)
-    o.connect(lp).connect(g).connect(this.bus.pulse)
-    o.start(t)
-    o.stop(t + 0.42)
-  }
-
-  /** Felt piano: a few decaying partials and a soft hammer, warm rather than bright. */
-  private piano(t: number, f: number, velocity: number, bus: GainNode = this.bus.piano) {
-    ;[
-      [1, 1, 3.4],
-      [2, 0.42, 2],
-      [3, 0.18, 1.2],
-      [4.02, 0.08, 0.7],
-    ].forEach(([ratio, amp, decay]) => {
-      const o = this.ctx.createOscillator()
-      o.frequency.value = f * ratio
-      const g = this.ctx.createGain()
-      g.gain.setValueAtTime(0.0001, t)
-      g.gain.exponentialRampToValueAtTime(0.16 * amp * velocity, t + 0.006)
-      g.gain.exponentialRampToValueAtTime(0.0001, t + decay)
-      o.connect(g).connect(bus)
-      o.start(t)
-      o.stop(t + decay + 0.05)
-    })
-    // The felt: a tiny, muffled thump of noise.
-    const hammer = this.ctx.createBufferSource()
-    hammer.buffer = this.noise
-    const lp = this.ctx.createBiquadFilter()
-    lp.type = 'lowpass'
-    lp.frequency.value = 1200
-    const hg = this.ctx.createGain()
-    hg.gain.setValueAtTime(0.03 * velocity, t)
-    hg.gain.exponentialRampToValueAtTime(0.0001, t + 0.04)
-    hammer.connect(lp).connect(hg).connect(bus)
-    hammer.start(t, Math.random() * 2, 0.05)
+  /** Each new chord: the held strings and horns move to it, the old chord fading under the new. */
+  private changeChord(t: number) {
+    this.chordIndex++
+    const c = this.chord()
+    for (const v of this.pads) v.stop(t, 1.8)
+    const hold = (group: SampleGroup, midi: number, out: GainNode, vel: number) => this.sampler.play({ group, midi, vel, t, attack: 0.7, out })
+    this.pads = [
+      ...[c[2], c[3], c[4]].map((n) => hold('viola', n, this.bus.viola, 1)),
+      ...[c[3] + 12, c[4] + 12].map((n) => hold('violin', n, this.bus.violin, 1)),
+      ...[c[0] + 12, c[1] + 12].map((n) => hold('horn', n, this.bus.horn, 2)),
+    ]
   }
 
   // ---------- hits at the transitions ----------
 
-  private hit(cue: Cue) {
-    const t = this.ctx.currentTime + 0.02
-    const chord = this.chord()
+  private hit(cue: Cue, t: number) {
+    const c = this.chord()
+    const out = this.bus.hits
+    const play = this.sampler.play.bind(this.sampler)
     switch (cue.kind) {
       case 'riser':
-        return this.riser(t, 1.6)
-      case 'swell':
-        return this.riser(t, 2.4, true)
-      case 'shimmer':
-        // A quick piano ripple up through the chord, high and soft.
-        return chord.forEach((m, i) => this.piano(t + i * 0.09, mtof(m + 24), 0.45, this.bus.hits))
-      case 'glass':
-        // Each landing is a note of the chord, climbing as the structure grows.
-        return this.piano(t, mtof(chord[2 + (cue.index % 3)] + 24), 0.7, this.bus.hits)
-      case 'lock':
-        return this.lock(t, chord, cue.final)
-      case 'phone':
-        return this.phone(t)
-      case 'resolve': {
-        const d = PROGRESSIONS.major[0]
-        d.forEach((m) => this.padNote(t, mtof(m)).stop(t + 7, 4))
-        ;[62, 66, 69, 74].forEach((m, i) => this.piano(t + 0.6 + i * 0.32, mtof(m + 12), 0.6, this.bus.hits))
+      case 'swell': {
+        // A suspended-cymbal swell, started so that its peak lands just ahead.
+        const lead = cue.kind === 'riser' ? 1.6 : 2.6
+        const take = cue.kind === 'riser' ? 'cresc1' : 'cresc0'
+        const only = (s: Sample) => s.id === take
+        const from = Math.max(0, this.sampler.peakOf('cresc', only) - lead)
+        play({ group: 'cresc', t, from, attack: 0.3, dur: lead + 1.2, release: 1.5, gain: cue.kind === 'riser' ? 0.9 : 0.6, out, only })
         return
       }
+      case 'shimmer':
+        // A vibraphone ripple up through the chord as the white-out fills the frame.
+        ;[c[2], c[3], c[4], c[2] + 12, c[3] + 12].forEach((n, i) => play({ group: 'vibes', midi: n + 12, t: t + i * 0.07, gain: 0.55, out }))
+        return
+      case 'glass':
+        // Each landing is a note of the chord, climbing as the structure grows.
+        play({ group: 'vibes', midi: c[2 + (cue.index % 3)] + 24, t, gain: 0.5, out })
+        return
+      case 'lock':
+        play({ group: 'timp', midi: drum(c[0]), vel: cue.final ? 4 : 3, t, gain: cue.final ? 1 : 0.8, out, only: timpStroke })
+        play({ group: 'frame', t, gain: 0.8, out, only: lowDrum })
+        // A short horn chord on every lock.
+        ;[c[0] + 12, c[1] + 12, c[2] + 12].forEach((n) => play({ group: 'horn', midi: n, vel: 3, t, dur: 0.55, attack: 0.02, release: 1.2, gain: 0.5, out }))
+        if (cue.final) {
+          play({ group: 'gong', t, gain: 0.7, out })
+          play({ group: 'kick', vel: 7, t, gain: 1, out })
+          play({ group: 'cymbal', t: t + 0.01, gain: 0.5, out })
+        }
+        return
+      case 'phone':
+        this.phone(t)
+        return
+      case 'resolve':
+        // D major, spelled out on the vibraphone over the low strings.
+        ;[62, 66, 69, 74].forEach((n, i) => play({ group: 'vibes', midi: n + 12, t: t + 0.4 + i * 0.32, gain: 0.6, out }))
+        play({ group: 'viola', midi: 50, t, dur: 6, attack: 1.5, release: 3, gain: 0.5, out })
+        return
     }
-  }
-
-  /** Air rising: filtered noise sweeping up and swelling, cut at the top. */
-  private riser(t: number, length: number, soft = false) {
-    const src = this.ctx.createBufferSource()
-    src.buffer = this.noise
-    const bp = this.ctx.createBiquadFilter()
-    bp.type = 'bandpass'
-    bp.Q.value = 1.4
-    bp.frequency.setValueAtTime(300, t)
-    bp.frequency.exponentialRampToValueAtTime(soft ? 2400 : 5200, t + length)
-    const g = this.ctx.createGain()
-    g.gain.setValueAtTime(0.0001, t)
-    g.gain.exponentialRampToValueAtTime(soft ? 0.12 : 0.2, t + length)
-    g.gain.exponentialRampToValueAtTime(0.0001, t + length + (soft ? 1.2 : 0.12))
-    src.connect(bp).connect(g).connect(this.bus.hits)
-    src.start(t, 0, length + 1.5)
-  }
-
-  /** A lock: a deep boom and a low string stab on the chord. Bigger for Trusted. */
-  private lock(t: number, chord: readonly number[], final: boolean) {
-    const weight = final ? 1.6 : 1
-    const boom = this.ctx.createOscillator()
-    boom.frequency.setValueAtTime(70, t)
-    boom.frequency.exponentialRampToValueAtTime(34, t + 0.6)
-    const bg = this.ctx.createGain()
-    bg.gain.setValueAtTime(0.0001, t)
-    bg.gain.exponentialRampToValueAtTime(0.7 * weight, t + 0.01)
-    bg.gain.exponentialRampToValueAtTime(0.0001, t + 1.1 * weight)
-    boom.connect(bg).connect(this.bus.hits)
-    boom.start(t)
-    boom.stop(t + 1.3 * weight)
-
-    for (const m of [chord[0] + 12, chord[1] + 12, chord[2] + 12]) {
-      const o = this.ctx.createOscillator()
-      o.type = 'sawtooth'
-      o.frequency.value = mtof(m)
-      const lp = this.ctx.createBiquadFilter()
-      lp.type = 'lowpass'
-      lp.frequency.setValueAtTime(2400, t)
-      lp.frequency.exponentialRampToValueAtTime(300, t + 0.5)
-      const g = this.ctx.createGain()
-      g.gain.setValueAtTime(0.0001, t)
-      g.gain.exponentialRampToValueAtTime(0.07 * weight, t + 0.015)
-      g.gain.exponentialRampToValueAtTime(0.0001, t + 0.9 * weight)
-      o.connect(lp).connect(g).connect(this.bus.hits)
-      o.start(t)
-      o.stop(t + 1 * weight)
-    }
-    if (final) this.wash(t, 3.5)
-  }
-
-  /** A long cymbal-like wash after the big hit: the air opening as the music turns to major. */
-  private wash(t: number, length: number) {
-    const src = this.ctx.createBufferSource()
-    src.buffer = this.noise
-    const hp = this.ctx.createBiquadFilter()
-    hp.type = 'highpass'
-    hp.frequency.value = 3800
-    const g = this.ctx.createGain()
-    g.gain.setValueAtTime(0.0001, t)
-    g.gain.exponentialRampToValueAtTime(0.1, t + 0.04)
-    g.gain.exponentialRampToValueAtTime(0.0001, t + length)
-    src.connect(hp).connect(g).connect(this.bus.hits)
-    src.start(t, 0, length + 0.1)
   }
 
   /** 11:47 PM: three short buzzes, quiet, as if from the next room. */
@@ -399,24 +344,18 @@ export class SoundEngine {
   // ---------- plumbing ----------
 
   suspend() {
-    return this.ctx.suspend()
+    return (this.ctx as AudioContext).suspend()
   }
 
   resume() {
-    return this.ctx.resume()
-  }
-
-  private whiteNoise(seconds: number) {
-    const buf = this.ctx.createBuffer(1, this.ctx.sampleRate * seconds, this.ctx.sampleRate)
-    const data = buf.getChannelData(0)
-    for (let i = 0; i < data.length; i++) data[i] = Math.random() * 2 - 1
-    return buf
+    return (this.ctx as AudioContext).resume()
   }
 
   /** A long, darkening hall: noise that decays and loses its top end over time. */
   private hall(seconds: number) {
     const rate = this.ctx.sampleRate
     const buf = this.ctx.createBuffer(2, rate * seconds, rate)
+    const rand = seeded(3)
     for (let ch = 0; ch < 2; ch++) {
       const data = buf.getChannelData(ch)
       let lp = 0
@@ -424,10 +363,18 @@ export class SoundEngine {
         const k = i / data.length
         // A one-pole lowpass that closes as the tail goes on: high frequencies die first.
         const coeff = 0.15 + 0.8 * k
-        lp = lp * coeff + (Math.random() * 2 - 1) * (1 - coeff)
+        lp = lp * coeff + (rand() * 2 - 1) * (1 - coeff)
         data[i] = lp * Math.pow(1 - k, 2.2) * 2.5
       }
     }
     return buf
   }
+}
+
+/** Timpani sit low: bring any root into the drums' range (A1 to E2). */
+function drum(midi: number) {
+  let n = midi
+  while (n > 40) n -= 12
+  while (n < 33) n += 12
+  return n
 }
