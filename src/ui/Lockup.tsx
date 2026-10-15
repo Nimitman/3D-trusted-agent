@@ -31,7 +31,9 @@ export function Lockup() {
       const set = (k: string, v: number) => el.style.setProperty(k, v.toFixed(3))
       set('--lk-ground', smoothstep(remap(t, b.flatten[0], b.flatten[1])))
       // Fills the frame from the keystone, then draws back to its true size.
-      set('--lk-scale', lerp(24, 1, smoothstep(remap(t, b.reveal[0], b.reveal[1]))))
+      // With reduced motion there's no zoom: the mark simply fades in at its size.
+      const reduced = useFilm.getState().reducedMotion
+      set('--lk-scale', reduced ? 1 : lerp(24, 1, smoothstep(remap(t, b.reveal[0], b.reveal[1]))))
       set('--lk-mark', smoothstep(remap(t, b.flatten[0], b.flatten[1])))
       set('--lk-stones', smoothstep(remap(t, b.reveal[0], b.reveal[1])))
       set('--lk-title', smoothstep(remap(t, b.title[0], b.title[1])))
@@ -44,7 +46,9 @@ export function Lockup() {
   }, [])
 
   return (
-    <section ref={root} id="lockup" className="lockup" aria-label={COPY.ch07.lockup} tabIndex={-1}>
+    // Visual only: the same words are in the screen-reader narrative (StoryText),
+    // so this layer is hidden from assistive tech rather than read twice.
+    <section ref={root} id="lockup" className="lockup" aria-hidden="true">
       <div className="lockup__ground" aria-hidden="true" />
       <div className="lockup__col">
         <svg className="lockup__mark" viewBox="-140 -240 280 270" aria-hidden="true" style={{ transformOrigin: KEY_ORIGIN }}>

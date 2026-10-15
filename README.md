@@ -15,6 +15,7 @@ npm run build   # type-check and production build
 Useful query parameters:
 
 - `?tier=full|lite|flat` forces a quality tier (`flat` is the 2D film, also used for reduced motion)
+- `?motion=reduced` previews the reduced-motion film without changing your system setting
 - `?debug` shows a progress HUD and enables `window.__shoot(p)` for exact stills at film progress `p`
 
 ## Structure

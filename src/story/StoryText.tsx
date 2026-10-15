@@ -7,7 +7,7 @@ import { COPY } from './copy'
  */
 export function StoryText() {
   return (
-    <main className="sr-only">
+    <article id="story" className="sr-only" tabIndex={-1} aria-label="The film, told in text">
       <h1>Trusted Agent, recognised by Housing.com</h1>
 
       <section aria-labelledby="s1">
@@ -56,6 +56,6 @@ export function StoryText() {
           {COPY.ch07.lockup}. {COPY.ch07.recognised}. {COPY.ch07.sub.join(' ')}
         </p>
       </section>
-    </main>
+    </article>
   )
 }

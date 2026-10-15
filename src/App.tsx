@@ -59,10 +59,13 @@ export default function App() {
       <Lockup />
       <Chrome />
       <Loader />
-      <StoryText />
       <DebugHud />
-      <div className="spacer" style={{ height: `calc(${filmVh}vh + 100vh)` }} aria-hidden="true" />
-      <HowTrustIsEarned />
+      {/* One main landmark: the film as text, its scroll room, then what follows it. */}
+      <main>
+        <StoryText />
+        <div className="spacer" style={{ height: `calc(${filmVh}vh + 100vh)` }} aria-hidden="true" />
+        <HowTrustIsEarned />
+      </main>
     </>
   )
 }

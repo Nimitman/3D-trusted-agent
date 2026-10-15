@@ -23,7 +23,7 @@ function cameraAt(p: number, pos: THREE.Vector3, look: THREE.Vector3, aspect: nu
     if (p >= chapter('ch06').end) return ch07Camera(localT(p, 'ch07'), pos, look, aspect)
     if (p >= chapter('ch05').end) return ch06Camera(localT(p, 'ch06'), pos, look, aspect)
     if (p >= chapter('ch04').end) return ch05Camera(localT(p, 'ch05'), pos, look, aspect)
-    return ch04Camera(localT(p, 'ch04'), pos, look)
+    return ch04Camera(localT(p, 'ch04'), pos, look, aspect)
   }
   if (activeWorld(p) === 'ch03') return ch03Camera(localT(p, 'ch03'), pos, look, aspect)
   if (activeWorld(p) === 'ch02') return ch02Camera(localT(p, 'ch02'), p, pos, look)

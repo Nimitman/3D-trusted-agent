@@ -39,9 +39,15 @@ const ORBIT: Key[] = [
 ]
 const o: number[] = []
 
-export function ch04Camera(t: number, pos: THREE.Vector3, look: THREE.Vector3) {
+/** 0 on landscape screens, rising to 1 on a phone held upright. */
+const portraitness = (aspect: number) => Math.min(1, Math.max(0, (1 - aspect) / 0.45))
+
+export function ch04Camera(t: number, pos: THREE.Vector3, look: THREE.Vector3, aspect = 1.6) {
   track(ORBIT, t, o)
-  pos.set(Math.sin(o[0]) * o[1], o[2], Math.cos(o[0]) * o[1])
+  // On a narrow screen, stand further back so the gathering pieces stay in frame.
+  // Chapters 05 and 06 use the same factor, so the camera never jumps between them.
+  const r = o[1] * lerp(1, 1.6, portraitness(aspect))
+  pos.set(Math.sin(o[0]) * r, o[2], Math.cos(o[0]) * r)
   look.set(0, o[3], 0)
 }
 
@@ -49,6 +55,7 @@ export function ch04Camera(t: number, pos: THREE.Vector3, look: THREE.Vector3) {
 function whiteoutPoint() {
   const pos = new THREE.Vector3()
   const look = new THREE.Vector3()
+  // Landscape framing: the white-out sits on the line of sight either way.
   ch04Camera(CH04_BEATS.recede[0], pos, look)
   return pos.lerp(look, 0.42).sub(new THREE.Vector3(0, LIFT, 0))
 }

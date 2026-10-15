@@ -31,8 +31,9 @@ const portraitness = (aspect: number) => clamp((1 - aspect) / 0.45)
 
 export function ch05Camera(t: number, pos: THREE.Vector3, look: THREE.Vector3, aspect = 1.6) {
   track(ORBIT, t, o)
-  // On a narrow screen, stand further back so the whole badge fits across.
-  const r = o[1] * lerp(1, 1.6, portraitness(aspect) * smoothstep(remap(t, CH05_BEATS.start, 0.3)))
+  // On a narrow screen, stand further back so the whole badge fits across
+  // (the same factor as Chapter 04, so the hand-over is seamless).
+  const r = o[1] * lerp(1, 1.6, portraitness(aspect))
   pos.set(Math.sin(o[0]) * r, o[2], Math.cos(o[0]) * r)
   look.set(0, o[3], 0)
 }

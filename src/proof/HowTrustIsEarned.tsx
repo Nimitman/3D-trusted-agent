@@ -48,6 +48,8 @@ export function HowTrustIsEarned() {
     const lenis = (window as unknown as { lenis?: { scrollTo: (t: number, o?: object) => void } }).lenis
     if (lenis) lenis.scrollTo(0, { duration: 2.2 })
     else window.scrollTo({ top: 0 })
+    // Focus follows: back to the start of the story, for keyboard and screen-reader users.
+    document.getElementById('story')?.focus({ preventScroll: true })
   }
 
   return (

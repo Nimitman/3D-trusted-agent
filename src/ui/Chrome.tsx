@@ -3,6 +3,7 @@ import { useFilm } from '../state/store'
 import { BUILT_UNTIL, CHAPTERS, CUTS, localT } from '../story/timeline'
 import { remap } from '../lib/math'
 import { filmScrollLength } from '../scroll/useFilmScroll'
+import { SoundToggle } from './SoundToggle'
 
 /** How long after the loader finishes the scroll hint appears: the light has dawned by then. */
 const HINT_AFTER_MS = 2100
@@ -51,7 +52,8 @@ export function Chrome() {
     const end = filmScrollLength()
     if (lenis) lenis.scrollTo(end, { duration: 2.4 })
     else window.scrollTo({ top: end })
-    document.getElementById(FINISHED ? 'lockup' : 'end')?.focus({ preventScroll: true })
+    // The film ends on the lockup, which is visual only; focus moves to the next real content.
+    document.getElementById(FINISHED ? 'how-trust-is-earned' : 'end')?.focus({ preventScroll: true })
   }
 
   return (
@@ -59,9 +61,11 @@ export function Chrome() {
       <div className={`cover${ready ? ' cover--lifted' : ''}`} aria-hidden="true" />
       <div className="black" aria-hidden="true" />
 
-      <a className="skip" href={FINISHED ? '#lockup' : '#end'} onClick={(e) => (e.preventDefault(), skip())}>
+      <a className="skip" href={FINISHED ? '#how-trust-is-earned' : '#end'} onClick={(e) => (e.preventDefault(), skip())}>
         Skip the film
       </a>
+
+      <SoundToggle />
 
       <div className="brand" aria-hidden="true">
         <span>Housing.com</span>
