@@ -2,6 +2,10 @@ import { useEffect, useRef, useState } from 'react'
 import { useFilm } from '../state/store'
 import { BUILT_UNTIL, CHAPTERS, CUTS, localT } from '../story/timeline'
 import { remap } from '../lib/math'
+import { filmScrollLength } from '../scroll/useFilmScroll'
+
+/** How long after the loader finishes the scroll hint appears: the light has dawned by then. */
+const HINT_AFTER_MS = 2100
 
 /** The whole film is built: no end-of-build card, and skipping lands on the lockup. */
 const FINISHED = BUILT_UNTIL >= 1
@@ -14,7 +18,15 @@ const FINISHED = BUILT_UNTIL >= 1
  */
 export function Chrome() {
   const ready = useFilm((s) => s.ready)
+  const introAt = useFilm((s) => s.introAt)
   const root = useRef<HTMLDivElement>(null)
+  // "Scroll" arrives once the light has dawned inside the finished loader ring.
+  const [hintOn, setHintOn] = useState(false)
+  useEffect(() => {
+    if (introAt === null) return
+    const id = setTimeout(() => setHintOn(true), Math.max(0, introAt + HINT_AFTER_MS - performance.now()))
+    return () => clearTimeout(id)
+  }, [introAt])
 
   useEffect(() => {
     const apply = (p: number) => {
@@ -34,9 +46,10 @@ export function Chrome() {
   }, [])
 
   const skip = () => {
-    const lenis = (window as unknown as { lenis?: { scrollTo: (t: number, o?: object) => void; limit: number } }).lenis
-    const end = document.documentElement.scrollHeight
-    if (lenis) lenis.scrollTo(lenis.limit, { duration: 2.4 })
+    // To the end of the film (the lockup), not the end of the page.
+    const lenis = (window as unknown as { lenis?: { scrollTo: (t: number, o?: object) => void } }).lenis
+    const end = filmScrollLength()
+    if (lenis) lenis.scrollTo(end, { duration: 2.4 })
     else window.scrollTo({ top: end })
     document.getElementById(FINISHED ? 'lockup' : 'end')?.focus({ preventScroll: true })
   }
@@ -61,7 +74,7 @@ export function Chrome() {
         ))}
       </div>
 
-      <div className={`hint${ready ? ' hint--on' : ''}`} aria-hidden="true">
+      <div className={`hint${hintOn ? ' hint--on' : ''}`} aria-hidden="true">
         <span>Scroll</span>
         <i />
       </div>
@@ -99,7 +112,7 @@ export function DebugHud() {
       if (ref.current)
         ref.current.textContent =
           `p ${(s.p * 100).toFixed(2)}%  ch01 ${localT(s.p, 'ch01').toFixed(3)}\n` +
-          `v ${s.v.toFixed(2)}  tier ${s.tier}  fps ${fps}`
+          `v ${s.v.toFixed(2)}  tier ${s.tier}  fps ${fps}  beyond ${s.beyond.toFixed(2)}`
       raf = requestAnimationFrame(tick)
     }
     raf = requestAnimationFrame(tick)

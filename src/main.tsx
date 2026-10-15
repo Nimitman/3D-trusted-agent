@@ -9,7 +9,8 @@ import './styles/app.css'
 // Decide reduced motion and the quality tier before anything renders.
 const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)').matches
 const tier = detectTier(reducedMotion)
-useFilm.setState({ reducedMotion, tier, ready: tier === 'flat' })
+// Loading milestones: the page has started (and the 2D film needs nothing more).
+useFilm.setState({ reducedMotion, tier, ready: tier === 'flat', loaded: tier === 'flat' ? 1 : 0.12 })
 
 history.scrollRestoration = 'manual'
 scrollTo(0, 0)

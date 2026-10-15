@@ -29,7 +29,8 @@ export type Cue = {
     | 'stack-2'
     | 'stack-3'
     | 'stack-4'
-    | `lock-${number}`
+    | 'lock-now'
+    | 'lock-now-final'
     | 'title'
     | 'story'
     | 'statement'
@@ -113,18 +114,26 @@ function quietCues(): Cue[] {
 }
 
 /**
- * Chapter 05: each quality is named as its piece seats, and the list holds
- * until the badge is whole. Then, once: TRUSTED AGENT.
+ * Chapter 05: as each piece seats, its name appears large, centred just below
+ * the badge, and holds until the next one locks: one word at a time, where the
+ * eye already is. (A corner list here got missed in review.) The progress row
+ * under it is in ui/LockStrip.tsx. Then, once: TRUSTED AGENT.
  */
 function lockCues(): Cue[] {
   const [t0, t1] = CH05_BEATS.title
-  const rows: Cue[] = COPY.ch05.locks.map((text, i) => ({
-    id: `lock${i}`,
-    text,
-    in: [at('ch05', CH05_BEATS.locks[i] - 0.004), at('ch05', CH05_BEATS.locks[i] + 0.02)] as [number, number],
-    out: [at('ch05', t0 - 0.02), at('ch05', t0 + 0.01)] as [number, number],
-    style: `lock-${i}` as Cue['style'],
-  }))
+  const locks = CH05_BEATS.locks
+  const rows: Cue[] = COPY.ch05.locks.map((text, i) => {
+    const last = i === locks.length - 1
+    return {
+      id: `lock${i}`,
+      text,
+      in: [at('ch05', locks[i] - 0.006), at('ch05', locks[i] + 0.012)] as [number, number],
+      out: last
+        ? ([at('ch05', t0 - 0.025), at('ch05', t0 - 0.005)] as [number, number])
+        : ([at('ch05', locks[i + 1] - 0.03), at('ch05', locks[i + 1] - 0.012)] as [number, number]),
+      style: last ? 'lock-now-final' : 'lock-now',
+    }
+  })
   return [
     ...rows,
     // Leaves as the quiet begins, before the stories surface.

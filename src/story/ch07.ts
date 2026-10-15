@@ -16,9 +16,8 @@ export const CH07_BEATS = {
   earned: [0.5, 0.54, 0.6, 0.63] as [number, number, number, number],
   /** The keystone draws back to reveal the whole mark. */
   reveal: [0.6, 0.7] as [number, number],
-  /** The lockup's lines arrive in turn, then the buttons. */
+  /** The lockup's lines arrive in turn. */
   title: [0.68, 0.73] as [number, number],
   recognised: [0.72, 0.77] as [number, number],
   sub: [0.76, 0.81] as [number, number],
-  ctas: [0.8, 0.86] as [number, number],
 }

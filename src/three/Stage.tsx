@@ -16,7 +16,7 @@ import { Atmosphere } from './Atmosphere'
 function ReadySignal() {
   const frames = useRef(0)
   useFrame(() => {
-    if (++frames.current === 3) useFilm.setState({ ready: true })
+    if (++frames.current === 3) useFilm.setState({ ready: true, loaded: 1 })
   })
   return null
 }
@@ -99,6 +99,13 @@ export function Stage({ tier }: { tier: Exclude<Tier, 'flat'> }) {
   const [dpr, setDpr] = useState(tier === 'full' ? 1.75 : 1.25)
   const setTier = useFilm((s) => s.setTier)
   const declines = useRef(0)
+  // Once the page after the film covers the screen, the film stops rendering.
+  const covered = useFilm((s) => s.beyond >= 1)
+
+  // Loading milestone: the 3D code has arrived and the stage is mounting.
+  useLayoutEffect(() => {
+    useFilm.setState((s) => ({ loaded: Math.max(s.loaded, 0.55) }))
+  }, [])
 
   return (
     <GLBoundary>
@@ -106,10 +113,13 @@ export function Stage({ tier }: { tier: Exclude<Tier, 'flat'> }) {
         className="stage"
         aria-hidden="true"
         dpr={dpr}
+        frameloop={covered ? 'never' : 'always'}
         shadows="soft"
         gl={{ antialias: false, powerPreference: 'high-performance', stencil: false }}
         camera={{ fov: 35, near: 0.1, far: 120, position: [0, 1.45, 14] }}
         onCreated={({ gl }) => {
+          // Loading milestone: WebGL is up; scenes and fonts are still loading.
+          useFilm.setState((s) => ({ loaded: Math.max(s.loaded, 0.72) }))
           gl.domElement.addEventListener('webglcontextlost', () => setTier('flat'), { once: true })
         }}
       >

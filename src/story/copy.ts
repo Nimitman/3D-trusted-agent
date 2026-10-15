@@ -37,7 +37,61 @@ export const COPY = {
     lockup: 'Trusted Agent',
     recognised: 'Recognised by Housing.com',
     sub: ['Find properties.', 'Meet agents worth trusting.'],
+    // Buttons are off the lockup for now (they interrupted scrolling on); kept for later.
     primary: 'Explore Trusted Agents',
     secondary: 'See how trust is earned',
+  },
+  /**
+   * After the film: what each part of the badge stands for. Draft wording;
+   * the product team must confirm the dimensions and how they're described.
+   * No scores or metrics: none are backed by real product data yet.
+   */
+  proof: {
+    heading: 'What makes an agent trusted?',
+    intro: 'Five qualities, built up over time. Each one holds up the others, and the badge only stands when all five are in place.',
+    draft: 'Draft wording · to confirm with product',
+    dimensions: [
+      {
+        id: 'verification',
+        part: 'Plinth',
+        lock: 'Verified',
+        title: 'Property verification',
+        line: 'Listings are checked against the actual property.',
+        role: 'Everything else stands on it.',
+      },
+      {
+        id: 'responsiveness',
+        part: 'Left pier',
+        lock: 'Responsive',
+        title: 'Responsiveness',
+        line: 'Replies when buyers and sellers need an answer.',
+        role: 'One of the two sides that carry the weight.',
+      },
+      {
+        id: 'quality',
+        part: 'Right pier',
+        lock: 'Quality',
+        title: 'Listing quality',
+        line: 'Accurate details, real photos, honest descriptions.',
+        role: 'The other side. Without both, nothing spans.',
+      },
+      {
+        id: 'consistency',
+        part: 'The ring of stones',
+        lock: 'Consistent',
+        title: 'Consistency',
+        line: 'The same standard on every listing, over time.',
+        role: 'Many small stones, each the same, holding the curve.',
+      },
+      {
+        id: 'behaviour',
+        part: 'Keystone',
+        lock: 'Trusted',
+        title: 'Professional behaviour',
+        line: 'Doing the right thing, including when it costs the deal.',
+        role: 'Set last. It locks the rest in place.',
+      },
+    ],
+    back: 'Back to the start',
   },
 } as const

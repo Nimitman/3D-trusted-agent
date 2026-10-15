@@ -17,10 +17,12 @@ import { glowTexture, stoneTexture } from '../materials/textures'
 /** Orbit: angle, distance, eye height, look height. Starts where Chapter 04 ends. */
 const ORBIT: Key[] = [
   { t: CH05_BEATS.start, v: [1.45, 4.1, 2.0, 1.6] },
-  { t: 0.3, v: [0.95, 5.8, 1.9, 1.45] },
-  { t: 0.5, v: [0.7, 6.0, 1.7, 1.45] },
+  // During the locks the badge sits a little higher, leaving room for each name below it.
+  { t: 0.3, v: [0.95, 5.8, 1.9, 1.18] },
+  { t: 0.5, v: [0.7, 6.0, 1.7, 1.18] },
   { t: 0.75, v: [0.55, 6.2, 1.85, 1.55] },
-  { t: 0.88, v: [0.42, 6.3, 1.9, 1.5] },
+  // Keystone seated: settle low again so TRUSTED has room under the plinth.
+  { t: 0.88, v: [0.42, 6.3, 1.9, 1.3] },
   // Back a little and look low, so the whole arch sits high with room for its name below.
   { t: 1, v: [0.32, 6.8, 1.75, 1.25] },
 ]

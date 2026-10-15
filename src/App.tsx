@@ -5,7 +5,10 @@ import { BUILT_UNTIL, FILM_VH } from './story/timeline'
 import { FlatStage } from './flat/FlatStage'
 import { Chrome, DebugHud } from './ui/Chrome'
 import { Captions } from './ui/Captions'
+import { LockStrip } from './ui/LockStrip'
 import { Lockup } from './ui/Lockup'
+import { Loader } from './ui/Loader'
+import { HowTrustIsEarned } from './proof/HowTrustIsEarned'
 import { StoryText } from './story/StoryText'
 
 // three.js and the scenes load only for viewers who get the 3D film.
@@ -52,11 +55,14 @@ export default function App() {
         </Suspense>
       )}
       <Captions />
+      <LockStrip />
       <Lockup />
       <Chrome />
+      <Loader />
       <StoryText />
       <DebugHud />
       <div className="spacer" style={{ height: `calc(${filmVh}vh + 100vh)` }} aria-hidden="true" />
+      <HowTrustIsEarned />
     </>
   )
 }

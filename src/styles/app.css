@@ -111,29 +111,25 @@ body {
   display: grid;
   justify-items: center;
   gap: 10px;
-  font: 500 10px/1 var(--f-mono);
-  letter-spacing: 0.24em;
+  /* Highlighted: bright, warm, a touch larger, so it reads as the invitation it is. */
+  font: 500 12px/1 var(--f-mono);
+  letter-spacing: 0.32em;
   text-transform: uppercase;
-  color: var(--stone);
+  color: var(--bone);
+  text-shadow: 0 0 14px rgba(255, 214, 170, 0.45);
   opacity: 0;
   pointer-events: none;
+  transition: opacity 1.2s ease;
 }
 .hint--on {
   opacity: var(--hint);
-  transition: opacity 1.2s ease;
-  animation: hint-in 1.6s ease 3.4s both;
 }
 .hint i {
   width: 1px;
-  height: 34px;
-  background: linear-gradient(var(--stone), transparent);
+  height: 38px;
+  background: linear-gradient(var(--bone), transparent);
   animation: hint-line 2.4s ease-in-out infinite;
   transform-origin: top;
-}
-@keyframes hint-in {
-  from {
-    opacity: 0;
-  }
 }
 @keyframes hint-line {
   0% {
@@ -712,36 +708,59 @@ body {
   transition: opacity 0.9s ease;
 }
 
-/* Chapter 05: the qualities, named as they lock, in a quiet column lower left. */
-.cue[class*='cue--lock-'] {
+/*
+ * Chapter 05: each quality's name, large and centred just below the badge, one
+ * at a time as its piece seats. TRUSTED, the last, is the only purple word.
+ */
+.cue--lock-now,
+.cue--lock-now-final {
   align-self: end;
-  justify-self: start;
-  margin-left: max(16px, 6vw);
-  margin-bottom: calc(env(safe-area-inset-bottom, 0px) + 12vh + (4 - var(--row)) * 2.2em);
-  font-family: var(--f-mono);
-  font-weight: 500;
-  font-size: clamp(12px, 1.1vw, 15px);
-  letter-spacing: 0.26em;
-  text-align: left;
-  text-shadow: none;
-  transform-origin: left center;
+  margin-bottom: calc(env(safe-area-inset-bottom, 0px) + 9vh);
+  font-weight: 800;
+  font-stretch: 118%;
+  font-size: clamp(32px, 5.4vw, 84px);
+  line-height: 0.9;
+  letter-spacing: 0.06em;
 }
-.cue[class*='cue--lock-']::before {
-  content: '';
-  display: inline-block;
-  width: 1.6em;
-  height: 1px;
-  margin-right: 0.9em;
-  vertical-align: middle;
-  background: currentColor;
-  opacity: 0.6;
+.cue--lock-now-final {
+  color: var(--purple-lit);
 }
-.cue--lock-0 { --row: 0; }
-.cue--lock-1 { --row: 1; }
-.cue--lock-2 { --row: 2; }
-.cue--lock-3 { --row: 3; }
-/* The last one is the only purple word in the film until the lockup. */
-.cue--lock-4 { --row: 4; color: var(--purple-lit); }
+/* The progress row under it: all five, lighting up as they're earned. */
+.lockstrip {
+  position: fixed;
+  z-index: 13;
+  left: 0;
+  right: 0;
+  bottom: calc(env(safe-area-inset-bottom, 0px) + 4vh);
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px 18px;
+  padding-inline: 16px;
+  font: 500 clamp(10px, 0.9vw, 12px) / 1.3 var(--f-mono);
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--stone);
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+.lockstrip span {
+  opacity: 0.4;
+  transition: opacity 0.4s ease, color 0.4s ease;
+}
+.lockstrip span.is-locked {
+  opacity: 1;
+  color: var(--bone);
+}
+.lockstrip span.is-trust.is-locked {
+  color: var(--purple-lit);
+}
+@media (prefers-reduced-motion: reduce) {
+  .lockstrip span {
+    transition: none;
+  }
+}
 .cue--title {
   align-self: end;
   margin-bottom: calc(env(safe-area-inset-bottom, 0px) + 10vh);
@@ -856,7 +875,6 @@ body {
   --lk-title: 0;
   --lk-recognised: 0;
   --lk-sub: 0;
-  --lk-ctas: 0;
   position: fixed;
   inset: 0;
   z-index: 12;
@@ -866,9 +884,6 @@ body {
   visibility: hidden;
   pointer-events: none;
   outline: none;
-}
-.lockup--live .lockup__ctas {
-  pointer-events: auto;
 }
 .lockup__ground {
   position: absolute;
@@ -936,50 +951,289 @@ body {
   color: var(--stone-2);
   opacity: var(--lk-sub);
 }
-.lockup__ctas {
+
+/* ---------- after the film: what makes an agent trusted ---------- */
+.proof {
+  position: relative;
+  z-index: 25;
+  background: var(--void);
+  border-top: 1px solid var(--line);
+  outline: none;
+}
+.proof__inner {
+  max-width: 1240px;
+  margin: 0 auto;
+  padding: clamp(72px, 12vh, 140px) clamp(16px, 5vw, 64px) 48px;
+  display: grid;
+  gap: clamp(36px, 6vh, 72px);
+}
+.proof__head {
+  display: grid;
+  gap: 16px;
+  max-width: 760px;
+}
+.proof__draft {
+  justify-self: start;
+  margin: 0;
+  padding: 0.35em 0.7em;
+  font: 500 10px/1.2 var(--f-mono);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--void);
+  background: var(--stone-2);
+}
+.proof__heading {
+  margin: 0;
+  font-family: var(--f-display);
+  font-weight: 800;
+  font-stretch: 112%;
+  font-size: clamp(34px, 5.6vw, 84px);
+  line-height: 0.92;
+  letter-spacing: -0.015em;
+  text-transform: uppercase;
+  text-wrap: balance;
+}
+.proof__intro {
+  margin: 0;
+  max-width: 54ch;
+  font-size: clamp(17px, 1.4vw, 20px);
+  line-height: 1.55;
+  color: var(--stone-2);
+}
+.proof__grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr);
+  gap: clamp(28px, 5vw, 80px);
+  align-items: start;
+}
+.proof__model {
+  position: sticky;
+  top: 12vh;
+  display: grid;
+  gap: 14px;
+  justify-items: center;
+}
+.proof__canvas,
+.proof__svg {
+  width: 100% !important;
+  max-width: 520px;
+  aspect-ratio: 1;
+  height: auto !important;
+}
+.proof__part-name {
+  margin: 0;
+  font: 500 11px/1 var(--f-mono);
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--stone);
+}
+.proof__list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border-top: 1px solid var(--line);
+}
+.proof__list li {
+  border-bottom: 1px solid var(--line);
+}
+.proof__item {
+  all: unset;
+  box-sizing: border-box;
+  width: 100%;
+  display: grid;
+  gap: 6px;
+  padding: 22px 20px 22px 22px;
+  cursor: pointer;
+  border-left: 2px solid transparent;
+  transition: border-color 0.3s ease, background-color 0.3s ease;
+}
+.proof__item:focus-visible {
+  outline: 2px solid var(--purple-lit);
+  outline-offset: -2px;
+}
+.proof__item.is-on {
+  border-left-color: var(--bone);
+  background: var(--char);
+}
+.proof__lock {
+  font: 500 11px/1 var(--f-mono);
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--stone);
+}
+.proof__title {
+  font: 600 clamp(20px, 1.9vw, 26px) / 1.2 var(--f-body);
+  color: var(--stone-2);
+  transition: color 0.3s ease;
+}
+.proof__line {
+  font-size: clamp(16px, 1.3vw, 18px);
+  line-height: 1.5;
+  color: var(--stone-2);
+}
+.proof__role {
+  font-size: 15px;
+  font-style: italic;
+  color: var(--stone);
+}
+.proof__item.is-on .proof__title,
+.proof__item.is-on .proof__line {
+  color: var(--bone);
+}
+.proof__foot {
   display: flex;
   flex-wrap: wrap;
-  justify-content: center;
-  gap: 12px;
-  margin-top: 18px;
-  opacity: var(--lk-ctas);
-  transform: translateY(calc((1 - var(--lk-ctas)) * 10px));
-}
-.cta {
-  display: inline-block;
-  padding: 16px 24px;
-  font: 500 12px/1 var(--f-mono);
-  letter-spacing: 0.14em;
+  justify-content: space-between;
+  gap: 16px;
+  padding-top: 28px;
+  border-top: 1px solid var(--line);
+  font: 500 11px/1.4 var(--f-mono);
+  letter-spacing: 0.16em;
   text-transform: uppercase;
-  text-decoration: none;
-  transition: background-color 0.25s ease, border-color 0.25s ease, color 0.25s ease;
+  color: var(--stone);
 }
-.cta--primary {
-  color: #fff;
-  background: var(--purple);
+.proof__back {
+  all: unset;
+  cursor: pointer;
+  color: var(--stone-2);
 }
-.cta--primary:hover {
-  background: #6c32ee;
-}
-.cta--secondary {
+.proof__back:hover {
   color: var(--bone);
-  border: 1px solid rgba(236, 231, 222, 0.4);
 }
-.cta--secondary:hover {
-  border-color: var(--bone);
+.proof__back:focus-visible {
+  outline: 2px solid var(--purple-lit);
+  outline-offset: 4px;
 }
-@media (max-width: 767px) {
-  .lockup__ctas {
-    flex-direction: column;
-    align-items: stretch;
-    width: min(320px, 86vw);
+
+/* The 2D badge: the chosen part lifts and glows, the others step back. */
+.proof__part path {
+  fill: #d8d2c6;
+  stroke: var(--void);
+  stroke-width: 1.4;
+  stroke-linejoin: round;
+  transition: fill 0.35s ease;
+}
+.proof__part--g0 path { fill: #57534d; }
+.proof__part--g1 path,
+.proof__part--g2 path { fill: #c4bdb1; }
+.proof__part--g4 path { fill: #e9e4da; }
+.proof__part {
+  transition: opacity 0.35s ease, transform 0.35s ease, filter 0.35s ease;
+}
+.proof__part.is-off {
+  opacity: 0.38;
+}
+.proof__part.is-on {
+  transform: translateY(-5px);
+  filter: drop-shadow(0 6px 10px rgba(122, 69, 255, 0.75));
+}
+
+@media (max-width: 860px) {
+  .proof__grid {
+    grid-template-columns: 1fr;
   }
-  .cta {
-    text-align: center;
+  /* On a phone the badge stays in view at the top while the list scrolls under it. */
+  .proof__model {
+    top: 0;
+    z-index: 1;
+    padding: 10px 0 12px;
+    /* Solid, so the list scrolls cleanly underneath rather than through the label. */
+    background: var(--void);
+    border-bottom: 1px solid var(--line);
+  }
+  .proof__canvas,
+  .proof__svg {
+    max-width: min(240px, 60vw);
   }
 }
 @media (prefers-reduced-motion: reduce) {
-  .cta {
+  .proof__item,
+  .proof__part,
+  .proof__part path {
     transition: none;
+  }
+}
+
+/* ---------- loader: a ring around where the light will be ---------- */
+.loader {
+  --loader-out: 0;
+  position: fixed;
+  z-index: 31;
+  left: var(--dot-x, 50%);
+  top: var(--dot-y, 52.5%);
+  width: 64px;
+  height: 64px;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  animation: loader-in 0.4s ease both;
+}
+/* In 2D the light is the small doorway, a little higher up. */
+.loader--flat {
+  top: 46%;
+}
+.loader__ring {
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+.loader__track,
+.loader__arc {
+  fill: none;
+}
+.loader__track {
+  stroke: rgba(236, 231, 222, 0.14);
+  stroke-width: 1;
+}
+.loader__arc {
+  stroke: var(--bone);
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  transition: opacity 1.4s ease;
+}
+.loader__pct {
+  position: absolute;
+  left: 50%;
+  top: calc(100% + 16px);
+  transform: translateX(-50%);
+  font: 500 10px/1 var(--f-mono);
+  letter-spacing: 0.24em;
+  color: var(--stone-2);
+  font-variant-numeric: tabular-nums;
+  transition: opacity 0.6s ease;
+}
+/* Done: the count goes, the ring stays as a faint halo until the first scroll. */
+.loader--done .loader__pct {
+  opacity: 0;
+}
+.loader--done .loader__ring {
+  opacity: calc(0.45 * (1 - var(--loader-out)));
+  transition: opacity 1.4s ease;
+}
+@keyframes loader-in {
+  from {
+    opacity: 0;
+  }
+}
+
+/*
+ * 2D: the doorway waits for the loader, then comes up. Faded on the layer, not
+ * the glow, whose own opacity follows the scroll and mustn't lag behind it.
+ */
+.flat__world--ch01 {
+  transition: opacity 1.8s ease 0.15s;
+}
+.flat:not(.flat--lit) .flat__world--ch01 {
+  opacity: 0;
+}
+@media (max-width: 767px) {
+  .loader {
+    width: 56px;
+    height: 56px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .loader,
+  .hint i {
+    animation: none;
   }
 }

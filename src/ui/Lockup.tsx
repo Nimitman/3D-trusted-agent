@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef } from 'react'
 import { useFilm } from '../state/store'
 import { localT } from '../story/timeline'
 import { COPY } from '../story/copy'
@@ -15,12 +15,12 @@ const KEY_ORIGIN = '50% 17.4%'
 /**
  * The final screen. The camera has pushed into the keystone; here a flat
  * keystone of the same purple takes over the frame, then draws back to reveal
- * the whole mark, and the lockup arrives line by line. Real HTML: the links
- * are focusable and work the same in every tier.
+ * the whole mark, and the lockup arrives line by line. It never takes pointer
+ * or touch input, so scrolling always carries on into the page below.
+ * (The two buttons were removed after review; their copy stays in copy.ts.)
  */
 export function Lockup() {
   const root = useRef<HTMLDivElement>(null)
-  const [live, setLive] = useState(false)
 
   useEffect(() => {
     const apply = (p: number) => {
@@ -37,11 +37,6 @@ export function Lockup() {
       set('--lk-title', smoothstep(remap(t, b.title[0], b.title[1])))
       set('--lk-recognised', smoothstep(remap(t, b.recognised[0], b.recognised[1])))
       set('--lk-sub', smoothstep(remap(t, b.sub[0], b.sub[1])))
-      const ctas = smoothstep(remap(t, b.ctas[0], b.ctas[1]))
-      set('--lk-ctas', ctas)
-      // Only reachable by pointer and keyboard once the buttons are really there.
-      const nowLive = ctas > 0.6
-      setLive((was) => (was === nowLive ? was : nowLive))
       el.style.visibility = t > b.flatten[0] - 0.01 ? 'visible' : 'hidden'
     }
     apply(useFilm.getState().p)
@@ -49,7 +44,7 @@ export function Lockup() {
   }, [])
 
   return (
-    <section ref={root} id="lockup" className={`lockup${live ? ' lockup--live' : ''}`} aria-label={COPY.ch07.lockup} tabIndex={-1}>
+    <section ref={root} id="lockup" className="lockup" aria-label={COPY.ch07.lockup} tabIndex={-1}>
       <div className="lockup__ground" aria-hidden="true" />
       <div className="lockup__col">
         <svg className="lockup__mark" viewBox="-140 -240 280 270" aria-hidden="true" style={{ transformOrigin: KEY_ORIGIN }}>
@@ -67,15 +62,6 @@ export function Lockup() {
           <br />
           {COPY.ch07.sub[1]}
         </p>
-        <div className="lockup__ctas">
-          {/* Destinations are placeholders until the directory and the trust explainer exist. */}
-          <a className="cta cta--primary" href="#explore-trusted-agents" tabIndex={live ? 0 : -1}>
-            {COPY.ch07.primary}
-          </a>
-          <a className="cta cta--secondary" href="#how-trust-is-earned" tabIndex={live ? 0 : -1}>
-            {COPY.ch07.secondary}
-          </a>
-        </div>
       </div>
     </section>
   )

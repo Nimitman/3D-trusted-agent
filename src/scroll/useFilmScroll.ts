@@ -8,12 +8,22 @@ import { clamp } from '../lib/math'
  * Turns page scroll into film progress. Lenis gives the scroll its weight;
  * with reduced motion we fall back to native scrolling and no smoothing.
  */
+/** How far the page scrolls while the film plays: the spacer's height less one screen. */
+export function filmScrollLength(fallback = 0) {
+  const spacer = document.querySelector<HTMLElement>('.spacer')
+  return spacer ? spacer.offsetHeight - innerHeight : fallback
+}
+
 export function useFilmScroll() {
   const reducedMotion = useFilm((s) => s.reducedMotion)
 
   useEffect(() => {
     const write = (scroll: number, limit: number, velocity: number) => {
-      const p = limit > 0 ? (scroll / limit) * BUILT_UNTIL : 0
+      // The film runs over the spacer's length; anything after it is ordinary page.
+      const film = filmScrollLength(limit)
+      const p = film > 0 ? clamp(scroll / film) * BUILT_UNTIL : 0
+      const beyond = Math.max(0, scroll - film) / innerHeight
+      if (beyond !== useFilm.getState().beyond) useFilm.setState({ beyond })
       useFilm.setState({ p, v: clamp(velocity / 60, -1, 1) })
     }
 

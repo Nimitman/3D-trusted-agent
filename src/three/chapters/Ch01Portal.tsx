@@ -77,15 +77,22 @@ export function Ch01Portal({ tier }: { tier: Tier }) {
   const light = useRef<THREE.PointLight>(null)
   const core = useRef<THREE.Sprite>(null)
   const halo = useRef<THREE.Sprite>(null)
-  const bornAt = useRef<number | null>(null)
+  const dotScreen = useMemo(() => new THREE.Vector3(), [])
 
   useFrame((state) => {
-    const p = film().p
+    const { p, introAt } = film()
     const t = localT(p, 'ch01')
     const now = state.clock.elapsedTime
-    if (bornAt.current === null) bornAt.current = now
-    // The first point of light arrives on its own, before any scroll.
-    const dawn = smoothstep(remap(now - bornAt.current, 0.6, 3.2))
+    // The first point of light dawns inside the loader ring, once loading is done.
+    const dawn = introAt === null ? 0 : smoothstep(remap((performance.now() - introAt) / 1000, 0.15, 2))
+
+    // Tell the loader ring where the light is on screen, so it stays centred on it.
+    if (p < 0.012 && core.current) {
+      core.current.getWorldPosition(dotScreen).project(state.camera)
+      const root = document.documentElement.style
+      root.setProperty('--dot-x', `${((dotScreen.x * 0.5 + 0.5) * 100).toFixed(2)}%`)
+      root.setProperty('--dot-y', `${((-dotScreen.y * 0.5 + 0.5) * 100).toFixed(2)}%`)
+    }
 
     // One light, start to finish: the point is the hot centre of the doorway's
     // glow, and scrolling spreads that glow outward until it fills the opening.

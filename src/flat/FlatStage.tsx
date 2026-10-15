@@ -86,6 +86,8 @@ function makeField(): FlatFigure[] {
 export function FlatStage() {
   const ref = useRef<HTMLDivElement>(null)
   const reduced = useFilm((s) => s.reducedMotion)
+  // In 2D too, the doorway's light only comes up once the loader has finished.
+  const lit = useFilm((s) => s.introAt !== null)
   const field = useMemo(makeField, [])
 
   useEffect(() => {
@@ -160,7 +162,7 @@ export function FlatStage() {
   }, [reduced])
 
   return (
-    <div ref={ref} className={`flat${reduced ? ' flat--still' : ''}`} aria-hidden="true">
+    <div ref={ref} className={`flat${reduced ? ' flat--still' : ''}${lit ? ' flat--lit' : ''}`} aria-hidden="true">
       <div className="flat__world flat__world--ch01">
         <div className="flat__glow" />
         <svg className="flat__arch" viewBox="-140 -240 280 270">
